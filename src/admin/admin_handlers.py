@@ -1,4 +1,5 @@
 from .admin_routes import *
+from init import *
 
 @admin_bp.route('/usercount')
 def handle_admin_usercount():
