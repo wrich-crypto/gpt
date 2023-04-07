@@ -1,0 +1,10 @@
+{
+  "server": "example.com",
+  "port": 1234,
+  "database": {
+    "server": "localhost",
+    "port": 3306,
+    "username": "root",
+    "password": "password123"
+  }
+}

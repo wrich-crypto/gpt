@@ -7,6 +7,8 @@ from init import *
 app = Flask(__name__)
 
 database_init()
+config_init()
+
 app.register_blueprint(user_bp)
 app.register_blueprint(admin_bp)
 app.register_blueprint(chat_bp)
