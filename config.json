@@ -1,5 +1,5 @@
 {
-  "server": "",
+  "server": "0.0.0.0",
   "port": 5000,
   "database": {
     "server": "localhost",
