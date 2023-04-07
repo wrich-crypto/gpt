@@ -14,4 +14,4 @@ app.register_blueprint(admin_bp)
 app.register_blueprint(chat_bp)
 
 if __name__ == '__main__':
-    app.run(port=main_config.port)
+    app.run(host='0.0.0.0', port=main_config.port)
