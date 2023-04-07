@@ -1,7 +1,7 @@
 from flask import Flask
-from user.user_handlers import user_bp
-from admin.admin_handlers import admin_bp
-from chat.chat_handlers import chat_bp
+from src.user.user_handlers import user_bp
+from src.admin.admin_handlers import admin_bp
+from src.chat.chat_handlers import chat_bp
 
 app = Flask(__name__)
 
