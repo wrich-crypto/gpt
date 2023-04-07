@@ -1,10 +1,11 @@
 {
-  "server": "example.com",
-  "port": 1234,
+  "server": "",
+  "port": 5000,
   "database": {
     "server": "localhost",
     "port": 3306,
     "username": "root",
+    "name": "db",
     "password": "password123"
   }
 }

@@ -1,15 +1,24 @@
 from package.database.sql import *
-from config.config import *
+from config.config import Config
 
-database = None
-config = None
+
+
+main_config = Config('config.json')
+database = MySQLDatabase(
+            host=main_config.db_server,
+            port=main_config.db_port,
+            user=main_config.db_username,
+            password=main_config.db_password,
+            database=main_config.db_name
+        )
 
 def config_init():
-    global config
-    config = Config('config.json')
-
+    pass
 
 def database_init():
     global database
-    database = MySQLDatabase(host='localhost', port=3306, user='root', password='password', database='my_database')
-    database.connect()
+
+    try:
+        database.connect()
+    except Exception as e:
+        print(f"Error connecting to database: {e}")
