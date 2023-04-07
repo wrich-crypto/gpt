@@ -6,7 +6,7 @@ from init import *
 
 app = Flask(__name__)
 
-database_init()
+# database_init()
 config_init()
 
 app.register_blueprint(user_bp)
