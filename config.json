@@ -4,8 +4,8 @@
   "database": {
     "server": "localhost",
     "port": 3306,
-    "username": "root",
-    "name": "db",
-    "password": "password123"
+    "username": "gpt_db_root",
+    "name": "gpt_db",
+    "password": "4a7Xx7EdbcGGwtjp"
   }
 }
