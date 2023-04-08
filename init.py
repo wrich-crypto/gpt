@@ -5,7 +5,9 @@ from package.common.error import *
 from flask import jsonify
 from package.common.token import generate_token
 
-logger = Logger('gpt', log_to_file=True)
+logger = Logger('gpt', log_to_file=True, filename='info.log')
+logger_common = Logger('common', log_to_file=True, filename='gate.log')
+
 main_config = Config('config.json')
 database = MySQLDatabase(
             host=main_config.db_server,

@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 
 class Logger:
-    def __init__(self, name, level=logging.DEBUG, log_to_file=False):
+    def __init__(self, name, level=logging.DEBUG, log_to_file=False, filename='app.log'):
         self.logger = logging.getLogger(name)
         self.logger.setLevel(level)
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -13,7 +13,7 @@ class Logger:
             log_folder = f'logs/{today}'
             if not os.path.exists(log_folder):
                 os.makedirs(log_folder)
-            file_name = f'{log_folder}/app.log'
+            file_name = f'{log_folder}/{filename}'
 
             try:
                 file_handler = logging.FileHandler(file_name)
