@@ -34,7 +34,7 @@ def handle_user_registration():
 @user_bp.route('/logout')
 def handle_user_logout():
     print('logout')
-    
+
     response_data = ErrorCode.success()
     return jsonify(response_data)
 
