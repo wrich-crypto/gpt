@@ -1,0 +1,1 @@
+2023-04-08 20:57:35,582 - gpt - INFO - Received request: POST /user/login, form_data: ImmutableMultiDict([('username', 'test'), ('password', '123456')])
