@@ -146,15 +146,15 @@ def handle_get_user_invitations():
         response_data = ErrorCode.error(-1, "Invalid token")
         return jsonify(response_data)
 
+    print(user.id)
     invitations = UserInvitation.query_all(session, inviter_id=user.id)
 
     invitation_data = []
     for invitation in invitations:
         invitee = User.query(session, id=invitation.invitee_id)
-        reward = 0
         invitation_data.append({
             "invitee_username": invitee.username,
-            "reward": reward
+            "reward": invitation.inviter_reward
         })
 
     response_data = ErrorCode.success({"invitations": invitation_data})

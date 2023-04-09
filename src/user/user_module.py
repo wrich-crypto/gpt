@@ -24,7 +24,9 @@ class UserInvitation(BaseModel):
     __tablename__ = 'user_invitations'
     id = Column(Integer, primary_key=True, autoincrement=True)
     inviter_id = Column(Integer, nullable=False)
+    inviter_reward = Column(DECIMAL(10, 2), nullable=False)
     invitee_id = Column(Integer, nullable=False)
+    invitee_reward = Column(DECIMAL(10, 2), nullable=False)
     created_at = Column(TIMESTAMP, default='CURRENT_TIMESTAMP', nullable=False)
 
 class UserBalance(BaseModel):
@@ -40,9 +42,10 @@ class UserRecharge(BaseModel):
     __tablename__ = 'user_recharges'
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, nullable=False)
-    amount = Column(Integer, nullable=False)
-    recharge_method = Column(Integer, nullable=False)   #1支付通道 2邀请
-    status = Column(Integer, nullable=False)            #1成功 2失败
+    pay_amount = Column(DECIMAL(10, 2), nullable=False)
+    amount = Column(DECIMAL(10, 2), nullable=False)
+    recharge_method = Column(Integer, nullable=False)           #1支付通道 2邀请
+    status = Column(Integer, nullable=False)                    #1成功 2失败
     created_at = Column(TIMESTAMP, default='CURRENT_TIMESTAMP', nullable=False)
 
 def get_reward(inviter_recharge, invitee_recharge):
@@ -74,22 +77,25 @@ def update_user_balance(user_id, reward):
         return
 
 def generate_invication(inviter_id, invitee_id):
-    instance, e =UserInvitation.create(session, inviter_id=inviter_id, invitee_id=invitee_id)
+    inviter_recharge = UserRecharge.exists(session, user_id=inviter_id, recharge_method=recharge_method_pay)
+    invitee_recharge = UserRecharge.exists(session, user_id=invitee_id, recharge_method=recharge_method_pay)
+    inviter_reward, invitee_reward = get_reward(inviter_recharge, invitee_recharge)
+
+    instance, e =UserInvitation.create(session, inviter_id=inviter_id, invitee_id=invitee_id,
+                                       inviter_reward=inviter_reward, invitee_reward=invitee_reward)
 
     if instance is None:
         logger.error(f'invitee already inviter_id:{inviter_id} error:{e}')
         return
 
-    inviter_recharge = UserRecharge.exists(session, user_id=inviter_id, recharge_method=recharge_method_pay)
-    invitee_recharge = UserRecharge.exists(session, user_id=invitee_id, recharge_method=recharge_method_pay)
-    inviter_reward, invitee_reward = get_reward(inviter_recharge, invitee_recharge)
-
     print('UserRecharge')
-    instance, e = UserRecharge.create(session, user_id=inviter_id, amount=inviter_reward, recharge_method=recharge_method_invite, status=status_success)
+    instance, e = UserRecharge.create(session, user_id=inviter_id, amount=inviter_reward,
+                                      recharge_method=recharge_method_invite, status=status_success)
     if instance is None:
         logger.error(f'UserRecharge.create inviter_id:{inviter_id} error:{e}')
 
-    instance, e = UserRecharge.create(session, user_id=invitee_id, amount=invitee_reward, recharge_method=recharge_method_invite, status=status_success)
+    instance, e = UserRecharge.create(session, user_id=invitee_id, amount=invitee_reward,
+                                      recharge_method=recharge_method_invite, status=status_success)
     if instance is None:
         logger.error(f'UserRecharge.create inviter_id:{inviter_id} error:{e}')
 

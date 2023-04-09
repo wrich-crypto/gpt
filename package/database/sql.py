@@ -92,3 +92,17 @@ class BaseModel(Base):
     @classmethod
     def count(cls, session, **kwargs):
         return session.query(cls).filter_by(**kwargs).count()
+
+    @classmethod
+    def transaction(cls, session, actions):
+        try:
+            for action in actions:
+                action(session)
+            session.commit()
+            return True, None
+        except SQLAlchemyError as e:
+            session.rollback()
+            return False, str(e)
+        except Exception as e:
+            session.rollback()
+            return False, str(e)
