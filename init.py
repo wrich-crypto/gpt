@@ -4,9 +4,14 @@ from package.common.log import *
 from package.common.error import *
 from flask import jsonify
 from package.common.token import generate_token
+from sqlalchemy import create_engine, Column, Integer, Numeric, ForeignKey, DateTime, String, DECIMAL, TIMESTAMP, Text, Enum
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
+import datetime
 
 logger = Logger('gpt', log_to_file=True, filename='info.log')
 logger_common = Logger('common', log_to_file=True, filename='gate.log')
+Base = declarative_base()
 
 main_config = Config('config.json')
 database = MySQLDatabase(
