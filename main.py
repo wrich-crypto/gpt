@@ -3,8 +3,10 @@ from flask import Flask, request
 from src.user.user_handlers import user_bp
 from src.admin.admin_handlers import admin_bp
 from src.chat.chat_handlers import chat_bp
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 config_init()
 database_init()
