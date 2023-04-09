@@ -1,4 +1,5 @@
 from init import *
+from sqlalchemy.exc import SQLAlchemyError
 
 from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
@@ -8,22 +9,46 @@ class BaseModel(Base):
 
     @classmethod
     def create(cls, session, **kwargs):
-        instance = cls(**kwargs)
-        session.add(instance)
-        session.commit()
-        return instance
+        try:
+            instance = cls(**kwargs)
+            session.add(instance)
+            session.commit()
+            return instance, None
+        except SQLAlchemyError as e:
+            session.rollback()
+            return None, str(e)
+        except Exception as e:
+            session.rollback()
+            return None, str(e)
 
     @classmethod
     def delete(cls, session, **kwargs):
-        instance = cls.query(session, **kwargs)
-        if instance:
-            session.delete(instance)
-            session.commit()
+        try:
+            instance = cls.query(session, **kwargs)
+            if instance:
+                session.delete(instance)
+                session.commit()
+            return True, None
+        except SQLAlchemyError as e:
+            session.rollback()
+            return False, str(e)
+        except Exception as e:
+            session.rollback()
+            return False, str(e)
+
 
     @classmethod
     def update(cls, session, conditions, updates):
-        session.query(cls).filter_by(**conditions).update(updates)
-        session.commit()
+        try:
+            session.query(cls).filter_by(**conditions).update(updates)
+            session.commit()
+            return True, None
+        except SQLAlchemyError as e:
+            session.rollback()
+            return False, str(e)
+        except Exception as e:
+            session.rollback()
+            return False, str(e)
 
     @classmethod
     def query(cls, session, **kwargs):
