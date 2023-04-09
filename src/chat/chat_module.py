@@ -17,3 +17,23 @@ class ChatChannel(BaseModel):
     user_id = Column(Integer, nullable=False)
     status = Column(Integer, nullable=False)
     created_at = Column(TIMESTAMP, default='CURRENT_TIMESTAMP', nullable=False)
+
+    @classmethod
+    def get_channels_by_user(cls, session, user_id, status=None):
+        query = session.query(cls).filter_by(user_id=user_id)
+        if status is not None:
+            query = query.filter_by(status=status)
+        return query.all()
+
+    @classmethod
+    def delete_channel(cls, session, channel_id):
+        try:
+            session.query(cls).filter_by(id=channel_id).update({"status": 2})
+            session.commit()
+            return True, None
+        except SQLAlchemyError as e:
+            session.rollback()
+            return False, str(e)
+        except Exception as e:
+            session.rollback()
+            return False, str(e)

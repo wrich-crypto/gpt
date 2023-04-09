@@ -7,6 +7,6 @@ def gpt_content(api_key, prompt):
                                             prompt=prompt,
                                             temperature=0.5,
                                             max_tokens=2048)
-        return response
+        return response.choices[0]
     except Exception as e:
-        return ''
+        return None

@@ -25,7 +25,23 @@ def handle_admin_totalrevenue():
         response_data = ErrorCode.error(-1, "Invalid token")
         return jsonify(response_data)
 
-    total = 1000.0
-    response_data = ErrorCode.success({'total': total})
+    total_revenue = UserBalance.sum(session, column='pay_amount')
+    response_data = ErrorCode.success({'total': total_revenue})
 
+    return jsonify(response_data)
+
+@admin_bp.route('/userbalance', methods=['GET'])
+def handle_admin_userbalance():
+    token = request.args.get('token')
+    user_id = request.args.get('user_id')
+
+    user = User.query(session, token=token)
+    if not user:
+        response_data = ErrorCode.error(-1, "Invalid token")
+        return jsonify(response_data)
+
+    user_balance = UserBalance.query(session, user_id=user_id)
+    remaining_balance = user_balance.remaining_balance if user_balance else 0
+
+    response_data = ErrorCode.success({'remaining_balance': remaining_balance})
     return jsonify(response_data)
