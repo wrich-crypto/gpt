@@ -51,6 +51,33 @@ class BaseModel(Base):
             return False, str(e)
 
     @classmethod
+    def upsert(cls, session, conditions, updates):
+        try:
+            updated_rows = session.query(cls).filter_by(**conditions).update(updates)
+            session.commit()
+
+            if updated_rows == 0:
+                instance = cls(**{**conditions, **updates})
+                session.add(instance)
+                session.commit()
+            return True, None
+        except SQLAlchemyError as e:
+            session.rollback()
+            return False, str(e)
+        except Exception as e:
+            session.rollback()
+            return False, str(e)
+
+    @classmethod
+    def sum(cls, session, column, **kwargs):
+        try:
+            return session.query(func.sum(cls.__dict__[column])).filter_by(**kwargs).scalar()
+        except SQLAlchemyError as e:
+            return None, str(e)
+        except Exception as e:
+            return None, str(e)
+
+    @classmethod
     def query(cls, session, **kwargs):
         return session.query(cls).filter_by(**kwargs).first()
 

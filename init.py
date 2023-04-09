@@ -8,6 +8,7 @@ from package.common.token import generate_token
 from sqlalchemy import create_engine, Column, Integer, Numeric, ForeignKey, DateTime, String, DECIMAL, TIMESTAMP, Text, Enum
 from sqlalchemy.orm import relationship
 import datetime
+from sqlalchemy import func
 from sqlalchemy.orm import sessionmaker  # 导入 sessionmaker
 
 

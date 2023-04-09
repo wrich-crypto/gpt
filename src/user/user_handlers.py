@@ -75,8 +75,8 @@ def handle_user_logout():
 @user_bp.route('/invite', methods=['POST'])
 def handle_user_invite():
     token = request.form.get('token')
-    referral_code = request.form.get('referral code')
-    print(f'token:{token}, email:{referral_code}')
+    referral_code = request.form.get('referral_code')
+    print(f'token:{token}, referral_code:{referral_code}')
 
     user = User.query(session, token=token)
     referral_user = User.query(session, referral_code=referral_code)
