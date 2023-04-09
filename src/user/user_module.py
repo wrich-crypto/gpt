@@ -1,6 +1,4 @@
 from init import *
-import random
-import string
 
 recharge_method_pay = 1
 recharge_method_invite = 2
@@ -56,7 +54,7 @@ class VerificationCode(BaseModel):
     username = Column(String(100), nullable=False)
     code_type = Column(String(10), nullable=False)
     code = Column(String(10), nullable=False)
-    expired_at = Column(TIMESTAMP, default=(datetime.datetime.utcnow() + 300), nullable=False)
+    expired_at = Column(TIMESTAMP, server_default=text("CURRENT_TIMESTAMP + INTERVAL '5' MINUTE"), nullable=False)
 
 def get_reward(inviter_recharge, invitee_recharge):
     if inviter_recharge is True and invitee_recharge is True:
@@ -84,7 +82,9 @@ def update_user_balance(user_id, reward):
 
     if result is False:
         logger.error(f'user_id:{user_id} update_balance_amount:{reward} error:{e}')
-        return
+        return False
+
+    return True
 
 def generate_invication(inviter_id, invitee_id):
     inviter_recharge = UserRecharge.exists(session, user_id=inviter_id, recharge_method=recharge_method_pay)

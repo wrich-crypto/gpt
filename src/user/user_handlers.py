@@ -202,6 +202,15 @@ def handle_payment():
     # 在此处实现支付功能，可能需要与支付服务集成
     # ...
 
+    token_amount = amount * 10000
+    instance, e = UserRecharge.create(session, user_id=user.id, amount=token_amount,
+                                      recharge_method=recharge_method_pay, status=status_success)
+    if instance is None:
+        logger.error(f'UserRecharge.create inviter_id:{user.id} error:{e}')
+
+    print('update_user_balance')
+    update_user_balance(user.id, token_amount)
+
     response_data = ErrorCode.success()
     return jsonify(response_data)
 
