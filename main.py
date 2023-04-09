@@ -1,8 +1,8 @@
+from init import *
 from flask import Flask, request
 from src.user.user_handlers import user_bp
 from src.admin.admin_handlers import admin_bp
 from src.chat.chat_handlers import chat_bp
-from init import *
 
 app = Flask(__name__)
 
@@ -16,7 +16,7 @@ app.register_blueprint(chat_bp)
 @app.before_request
 def before_request():
     form_data = request.form
-    logger.info(f'Received request: {request.method} {request.path}, form_data: {form_data}')
+    logger_common.info(f'Received request: {request.method} {request.path}, form_data: {form_data}')
 
 if __name__ == '__main__':
     app.run(host=main_config.server, port=main_config.port)

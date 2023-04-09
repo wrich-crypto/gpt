@@ -6,7 +6,15 @@ def handle_user_login():
     print('login')
     username = request.form.get('username')
     password = request.form.get('password')
-    hash_password = hash(password)
+    hash_password = hash_token(password)
+
+    user = User.query(session, username=username)
+
+    print(user.password)
+    print(hash_password)
+    if str(user.password) != str(hash_password):
+        response_data = ErrorCode.error(-1)
+        return jsonify(response_data)
 
     # validate the username and password
 
@@ -20,18 +28,20 @@ def handle_user_registration():
     username = request.form.get('username')
     email = request.form.get('email')
     verification_code = request.form.get('verification_code')
+    phone = request.form.get('phone')
     password = request.form.get('password')
-    hash_password = hash(password)
+    hash_password = hash_token(password)
 
-    print(f'email:{email},verification_code:{verification_code},password:{password}')
-    # validate the email and verification code
-    # ...
+    print(f'email:{email},verification_code:{verification_code},password:{password},hash_password:{hash_password}')
 
-    new_user = User(username=username, password=hash(password), email=email, phone="", invitation_code="")
-    session.add(new_user)  # 添加新用户到 session
-    session.commit()  # 提交更改
+    if User.exists(session, username=username) or User.exists(session, email=email) or User.exists(session, phone=phone):
+        logger.info(f'account exist username:{username}, email:{email}, phone:{phone}')
+        response_data = ErrorCode.error(-1)
+        return jsonify(response_data)
 
-    token = generate_token(username, password)
+    User.create(session, username=username, password=hash_password, email=email,
+                phone=phone, invitation_code=verification_code)
+
     response_data = {'code': 0, 'msg': 'success'}
     return jsonify(response_data)
 

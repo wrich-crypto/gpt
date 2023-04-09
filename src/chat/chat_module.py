@@ -1,6 +1,6 @@
 from init import *
 
-class ChatMessage(Base):
+class ChatMessage(BaseModel):
     __tablename__ = 'chat_messages'
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, nullable=False)
@@ -11,7 +11,7 @@ class ChatMessage(Base):
     tokens_consumed = Column(Integer, nullable=False)
     created_at = Column(TIMESTAMP, default='CURRENT_TIMESTAMP', nullable=False)
 
-class ChatChannel(Base):
+class ChatChannel(BaseModel):
     __tablename__ = 'chat_channels'
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, nullable=False)
