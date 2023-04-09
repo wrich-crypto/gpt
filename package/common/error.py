@@ -2,6 +2,7 @@ class ErrorCode:
     SUCCESS = 0
     ERROR_UNKNOWN = -1
     ERROR_INVALID_PARAMETER = -2
+    ERROR_SERVICE = -3
 
     @staticmethod
     def success(data=None):
@@ -11,7 +12,10 @@ class ErrorCode:
         return response_data
 
     @staticmethod
-    def error(error_code):
+    def error(error_code, message=''):
+        if message != '':
+            return {'code': error_code, 'msg': message}
+
         if error_code == ErrorCode.ERROR_UNKNOWN:
             return {'code': ErrorCode.ERROR_UNKNOWN, 'msg': 'Unknown error'}
         elif error_code == ErrorCode.ERROR_INVALID_PARAMETER:
