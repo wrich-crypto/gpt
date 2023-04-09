@@ -8,6 +8,9 @@ recharge_method_invite = 2
 status_success = 1
 status_failed = 2
 
+code_type_email = 1
+code_type_phone = 2
+
 class User(BaseModel):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -33,7 +36,6 @@ class UserBalance(BaseModel):
     __tablename__ = 'user_balances'
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, nullable=False)
-    remaining_balance = Column(DECIMAL(10, 2), nullable=False)
     total_recharge = Column(DECIMAL(10, 2), nullable=False)
     consumed_amount = Column(DECIMAL(10, 2), nullable=False)
     created_at = Column(TIMESTAMP, default='CURRENT_TIMESTAMP', nullable=False)
@@ -47,6 +49,14 @@ class UserRecharge(BaseModel):
     recharge_method = Column(Integer, nullable=False)           #1支付通道 2邀请
     status = Column(Integer, nullable=False)                    #1成功 2失败
     created_at = Column(TIMESTAMP, default='CURRENT_TIMESTAMP', nullable=False)
+
+class VerificationCode(BaseModel):
+    __tablename__ = 'verification_code'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    username = Column(String(100), nullable=False)
+    code_type = Column(String(10), nullable=False)
+    code = Column(String(10), nullable=False)
+    expired_at = Column(TIMESTAMP, default=(datetime.datetime.utcnow() + 300), nullable=False)
 
 def get_reward(inviter_recharge, invitee_recharge):
     if inviter_recharge is True and invitee_recharge is True:
@@ -106,3 +116,7 @@ def generate_invication(inviter_id, invitee_id):
 def generate_referral_code():
     referral_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
     return referral_code
+
+def generate_code():
+    code = ''.join(random.choices(string.digits, k=6))
+    return code

@@ -119,22 +119,36 @@ def handle_change_password():
 
 @user_bp.route('/get_phone_verification_code', methods=['POST'])
 def handle_get_phone_verification_code():
+    username = request.form.get('username')
     phone = request.form.get('phone')
+
+    code = generate_code()
 
     # third part service
     # ...
 
-    response_data = ErrorCode.success({'code': '111111'})
+    instance, e = VerificationCode.create(session, username=username, code_type=code_type_phone, code=code)
+    if instance is None:
+        logger.error(f'func handle_get_phone_verification_code, VerificationCode.create, username:{username} error: {e}')
+
+    response_data = ErrorCode.success({'code': str(code)})
     return jsonify(response_data)
 
 @user_bp.route('/get_email_verification_code', methods=['POST'])
 def handle_get_email_verification_code():
+    username = request.form.get('username')
     email = request.form.get('email')
+
+    code = generate_code()
 
     # third part service
     # ...
 
-    response_data = ErrorCode.success({'code': '111111'})
+    instance, e = VerificationCode.create(session, username=username, code_type=code_type_phone, code=code)
+    if instance is None:
+        logger.error(f'func handle_get_phone_verification_code, VerificationCode.create, username:{username} error: {e}')
+
+    response_data = ErrorCode.success({'code': str(code)})
     return jsonify(response_data)
 
 @user_bp.route('/get_user_invitations', methods=['GET'])
@@ -170,7 +184,7 @@ def handle_get_remaining_tokens():
         return jsonify(response_data)
 
     user_balance = UserBalance.query(session, user_id=user.id)
-    remaining_tokens = user_balance.remaining_balance
+    remaining_tokens = user_balance.total_recharge - user_balance.consumed_amount
 
     response_data = ErrorCode.success({"remaining_tokens": remaining_tokens})
     return jsonify(response_data)
