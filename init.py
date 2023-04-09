@@ -8,19 +8,17 @@ from sqlalchemy import create_engine, Column, Integer, Numeric, ForeignKey, Date
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 import datetime
+from sqlalchemy.orm import sessionmaker  # 导入 sessionmaker
+
 
 logger = Logger('gpt', log_to_file=True, filename='info.log')
 logger_common = Logger('common', log_to_file=True, filename='gate.log')
 Base = declarative_base()
 
 main_config = Config('config.json')
-database = MySQLDatabase(
-            host=main_config.db_server,
-            port=main_config.db_port,
-            user=main_config.db_username,
-            password=main_config.db_password,
-            database=main_config.db_name
-        )
+engine = create_engine(f"mysql+pymysql://{main_config.db_username}:{main_config.db_password}@{main_config.db_server}:{main_config.db_port}/{main_config.db_name}")
+Session = sessionmaker(bind=engine)
+session = Session()
 
 def config_init():
     pass

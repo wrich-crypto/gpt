@@ -1,5 +1,5 @@
 from .user_routes import *
-from init import *
+from user_module import *
 
 @user_bp.route('/login', methods=['POST'])
 def handle_user_login():
@@ -21,10 +21,15 @@ def handle_user_registration():
     email = request.form.get('email')
     verification_code = request.form.get('verification_code')
     password = request.form.get('password')
+    hash_password = hash(password)
 
     print(f'email:{email},verification_code:{verification_code},password:{password}')
     # validate the email and verification code
     # ...
+
+    new_user = User(username=username, password=hash(password), email=email, phone="", invitation_code="")
+    session.add(new_user)  # 添加新用户到 session
+    session.commit()  # 提交更改
 
     token = generate_token(username, password)
     response_data = {'code': 0, 'msg': 'success'}
