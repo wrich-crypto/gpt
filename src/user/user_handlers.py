@@ -32,7 +32,17 @@ def handle_user_registration():
 
     logger.info(f'register email:{email},verification_code:{verification_code},password:{password},hash_password:{hash_password}')
 
-    if User.exists(session, username=username) or User.exists(session, email=email) or User.exists(session, phone=phone):
+    if username == '' or password == '':
+        response_data = ErrorCode.error(error_code=ErrorCode.ERROR_INVALID_PARAMETER)
+        return jsonify(response_data)
+
+    if (email is None and email == '') or (phone is None and phone == ''):
+        response_data = ErrorCode.error(error_code=ErrorCode.ERROR_INVALID_PARAMETER)
+        return jsonify(response_data)
+
+    if User.exists(session, username=username) or \
+            User.exists(session, email=email) or \
+            User.exists(session, phone=phone):
         logger.info(f'account exist username:{username}, email:{email}, phone:{phone}')
         response_data = ErrorCode.error(error_code=ErrorCode.ERROR_INVALID_PARAMETER, message='account exist')
         return jsonify(response_data)
@@ -49,9 +59,7 @@ def handle_user_registration():
     referral_user = User.query(session, referral_code=referral_code)
 
     if referral_user is not None and referral_user.id > 0:
-        inviter_id = referral_user.id
-        invitee_id = instance.id
-        UserInvitation.create(session, inviter_id=inviter_id, invitee_id=invitee_id)
+        generate_invication(referral_user.id, instance.id)
 
     response_data = {'code': 0, 'msg': 'success'}
     return jsonify(response_data)
@@ -73,10 +81,13 @@ def handle_user_invite():
     user = User.query(session, token=token)
     referral_user = User.query(session, referral_code=referral_code)
 
+    if UserInvitation.exists(session, invitee_id=user.id):
+        logger.info(f'account referral already:{user.id}, referral_code:{referral_code}')
+        response_data = ErrorCode.error(ErrorCode.ERROR_INVALID_PARAMETER, 'account referral already')
+        return jsonify(response_data)
+
     if referral_user is not None and referral_user.id > 0:
-        inviter_id = referral_user.id
-        invitee_id = user.id
-        UserInvitation.create(session, inviter_id=inviter_id, invitee_id=invitee_id)
+        generate_invication(referral_user.id, user.id)
 
     response_data = ErrorCode.success()
     return jsonify(response_data)
@@ -135,36 +146,18 @@ def handle_get_user_invitations():
         response_data = ErrorCode.error(-1, "Invalid token")
         return jsonify(response_data)
 
-    # 查询用户邀请列表
     invitations = UserInvitation.query_all(session, inviter_id=user.id)
 
-    # 获取邀请人和奖励信息（根据实际情况修改）
     invitation_data = []
     for invitation in invitations:
         invitee = User.query(session, id=invitation.invitee_id)
-        reward = 0  # 计算奖励
+        reward = 0
         invitation_data.append({
             "invitee_username": invitee.username,
             "reward": reward
         })
 
     response_data = ErrorCode.success({"invitations": invitation_data})
-    return jsonify(response_data)
-
-@user_bp.route('/bind_invitation_reward', methods=['POST'])
-def handle_bind_invitation_reward():
-    token = request.form.get('token')
-    invitee_id = request.form.get('invitee_id')
-
-    user = User.query(session, token=token)
-    if not user:
-        response_data = ErrorCode.error(-1, "Invalid token")
-        return jsonify(response_data)
-
-    # 在此处实现邀请奖励的绑定关系，可能需要更新用户奖励数据等
-    # ...
-
-    response_data = ErrorCode.success()
     return jsonify(response_data)
 
 @user_bp.route('/get_remaining_tokens', methods=['GET'])

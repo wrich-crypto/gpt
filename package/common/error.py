@@ -1,14 +1,18 @@
 class ErrorCode:
     SUCCESS = 0
-    ERROR_UNKNOWN = -1
-    ERROR_INVALID_PARAMETER = -2
-    ERROR_SERVICE = -3
+    ERROR_INVALID_PARAMETER = -1
+    ERROR_SERVICE = -2
+    ERROR_CODE = -3
+    ERROR_ACCOUNT_OR_PASSWORD = -4
+    ERROR_ACCOUNT_EXISTED = -5
+    ERROR_BALANCE = -6
+    ERROR_UNKNOWN = -7
 
     @staticmethod
     def success(data=None):
         response_data = {'code': ErrorCode.SUCCESS, 'msg': 'Success'}
         if data:
-            response_data.update(data)
+            response_data.update({'data': data})
         return response_data
 
     @staticmethod

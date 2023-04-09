@@ -55,8 +55,8 @@ class BaseModel(Base):
         return session.query(cls).filter_by(**kwargs).first()
 
     @classmethod
-    def query_all(cls, session):
-        return session.query(cls).all()
+    def query_all(cls, session, **kwargs):
+        return session.query(cls).filter_by(**kwargs).all()
 
     @classmethod
     def exists(cls, session, **kwargs):

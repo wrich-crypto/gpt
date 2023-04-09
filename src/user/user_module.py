@@ -2,6 +2,12 @@ from init import *
 import random
 import string
 
+recharge_method_pay = 1
+recharge_method_invite = 2
+
+status_success = 1
+status_failed = 2
+
 class User(BaseModel):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -21,7 +27,6 @@ class UserInvitation(BaseModel):
     invitee_id = Column(Integer, nullable=False)
     created_at = Column(TIMESTAMP, default='CURRENT_TIMESTAMP', nullable=False)
 
-
 class UserBalance(BaseModel):
     __tablename__ = 'user_balances'
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -30,6 +35,50 @@ class UserBalance(BaseModel):
     total_recharge = Column(DECIMAL(10, 2), nullable=False)
     consumed_amount = Column(DECIMAL(10, 2), nullable=False)
     created_at = Column(TIMESTAMP, default='CURRENT_TIMESTAMP', nullable=False)
+
+class UserRecharge(BaseModel):
+    __tablename__ = 'user_recharges'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, nullable=False)
+    recharge_amount = Column(DECIMAL(10, 2), nullable=False)
+    recharge_method = Column(Integer, nullable=False)   #1支付通道 2邀请
+    status = Column(Integer, nullable=False)            #1成功 2失败
+    created_at = Column(TIMESTAMP, default='CURRENT_TIMESTAMP', nullable=False)
+
+def get_reward(inviter_recharge, invitee_recharge):
+    if inviter_recharge is True and invitee_recharge is True:
+        return 100000, 100000
+    elif inviter_recharge is False and invitee_recharge is True:
+        return 50000, 100000
+    elif inviter_recharge is False and invitee_recharge is False:
+        return 50000, 50000
+
+def update_user_balance(user_id, reward):
+    inviter_balance = UserBalance.query(session, user_id=user_id).first()
+    inviter_balance.remaining_balance += reward
+
+    result, _ = UserBalance.update(session, {'user_id': user_id},
+                       {'remaining_balance': UserBalance.remaining_balance + reward,
+                        'total_recharge': UserBalance.total_recharge + reward})
+
+    if result is False:
+        logger.error(f'user_id:{user_id} update_balance_amount:{reward} error')
+        return
+
+def generate_invication(inviter_id, invitee_id):
+    UserInvitation.create(session, inviter_id=inviter_id, invitee_id=invitee_id)
+
+    inviter_recharge = UserRecharge.exists(session, user_id=inviter_id, recharge_method=recharge_method_pay)
+    invitee_recharge = UserRecharge.exists(session, user_id=invitee_id, recharge_method=recharge_method_pay)
+    inviter_reward, invitee_reward = get_reward(inviter_recharge, invitee_recharge)
+
+    UserRecharge.create(session, user_id=inviter_id, recharge_amount=inviter_reward,
+                        recharge_method=recharge_method_invite, recharge_status=status_success)
+    UserRecharge.create(session, user_id=invitee_id, recharge_amount=invitee_reward,
+                        recharge_method=recharge_method_invite, recharge_status=status_success)
+
+    update_user_balance(inviter_id, inviter_reward)
+    update_user_balance(invitee_id, invitee_reward)
 
 def generate_referral_code():
     referral_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
