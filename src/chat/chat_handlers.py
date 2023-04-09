@@ -1,6 +1,6 @@
 from .chat_routes import *
 from package.chatgpt.gpt import *
-from chat_module import *
+from .chat_module import *
 
 @chat_bp.route('/textchat', methods=['POST'])
 def handle_chat_textchat():

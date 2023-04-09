@@ -1,5 +1,5 @@
 from .user_routes import *
-from user_module import *
+from .user_module import *
 
 @user_bp.route('/login', methods=['POST'])
 def handle_user_login():
