@@ -196,10 +196,14 @@ def handle_get_remaining_tokens():
 
     user = User.query(session, token=token)
     if not user:
-        response_data = ErrorCode.success({"remaining_tokens": 0})
+        response_data = ErrorCode.error(-1, "Invalid token")
         return jsonify(response_data)
 
     user_balance = UserBalance.query(session, user_id=user.id)
+    if not user_balance:
+        response_data = ErrorCode.success({"remaining_tokens": 0})
+        return jsonify(response_data)
+
     remaining_tokens = user_balance.total_recharge - user_balance.consumed_amount
 
     response_data = ErrorCode.success({"remaining_tokens": remaining_tokens})
