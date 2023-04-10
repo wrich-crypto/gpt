@@ -37,13 +37,13 @@ def handle_chat_textchat():
         return jsonify(response_data)
 
     content = content_obj.text
-    tokens_consumed = content_obj.usage["total_tokens"]
+    # tokens_consumed = content_obj.usage["total_tokens"]
 
-    success, error = UserBalance.update(session, conditions={"user_id": user.id},
-                                        updates={"consumed_amount": UserBalance.consumed_amount + tokens_consumed})
-    if not success:
-        response_data = ErrorCode.error(ErrorCode.ERROR_INVALID_PARAMETER, error)
-        return jsonify(response_data)
+    # success, error = UserBalance.update(session, conditions={"user_id": user.id},
+    #                                     updates={"consumed_amount": UserBalance.consumed_amount + tokens_consumed})
+    # if not success:
+    #     response_data = ErrorCode.error(ErrorCode.ERROR_INVALID_PARAMETER, error)
+    #     return jsonify(response_data)
 
     response_data = ErrorCode.success({'content': content})
     return jsonify(response_data)
