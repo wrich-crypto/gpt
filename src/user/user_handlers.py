@@ -11,8 +11,13 @@ def handle_user_login():
 
     user = User.query(session, username=username)
 
+    if user is None:
+        logger.error(f'handle_user_login User.query, username:{username} account no exist')
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'account no exist')
+
     # validate the username and password
     if str(user.token) != str(token):
+        logger.error(f'handle_user_login User.query, username:{username} token invalid')
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'token invalid')
 
     response_data = ErrorCode.success({'token': token})
@@ -43,18 +48,22 @@ def handle_user_registration():
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'verification error')
 
     if username == '' or password == '':
+        logger.error(f'handle_user_registration register_verification '
+                     f'verification_type:{verification_type} '
+                     f'email:{email}, phone:{phone}'
+                     f'verification_code:{verification_code} error')
         return error_response(error_code=ErrorCode.ERROR_INVALID_PARAMETER)
 
     if User.exists(session, username=username):
-        logger.info(f'account exist username:{username}, email:{email}, phone:{phone}')
+        logger.error(f'account exist username:{username}, email:{email}, phone:{phone}')
         return error_response(error_code=ErrorCode.ERROR_INVALID_PARAMETER, message='account exist')
 
     self_referral_code = generate_referral_code()
-    instance, _ = User.create(session, username=username, password=hash_password, email=email,
+    instance, e = User.create(session, username=username, password=hash_password, email=email,
                 phone=phone, referral_code=self_referral_code, token=token)
 
     if instance is None:
-        logger.info(f'account exist username:{username}, email:{email}, phone:{phone}')
+        logger.error(f'account exist username:{username}, email:{email}, phone:{phone}, error:{e}')
         return error_response(-1, "Invalid token")
 
     referral_user = User.query(session, referral_code=referral_code)
@@ -100,16 +109,21 @@ def handle_change_password():
 
     user = User.query(session, token=token)
     if not user:
+        logger.error(f'user not exist, token:{token}')
         return error_response(-1, "Invalid token")
 
     if user.password != hash_password:
+        logger.error(f'password error, token:{token}, password:{password}')
         return error_response(-1, "Invalid password")
 
     hashed_new_password = hash_token(new_password)
-    success, error_message = User.update(session, {"id": user.id}, {"password": hashed_new_password})
+    new_token = generate_token(user.username, hashed_new_password)
+
+    success, error_message = User.update(session, {"id": user.id}, {"password": hashed_new_password, "token": new_token})
     if success:
         response_data = ErrorCode.success()
     else:
+        logger.error(f'user not exist, token:{token}')
         return error_response(-1, error_message)
 
     return jsonify(response_data)
@@ -204,7 +218,7 @@ def handle_get_remaining_tokens():
 @user_bp.route('/pay', methods=['POST'])
 def handle_payment():
     token = request.form.get('token')
-    amount = request.form.get('amount')
+    amount = int(request.form.get('amount'))
 
     user = User.query(session, token=token)
     if not user:

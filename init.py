@@ -11,10 +11,10 @@ from sqlalchemy import create_engine, Column, Integer, Numeric, ForeignKey
 from sqlalchemy import DateTime, String, DECIMAL, TIMESTAMP, Text, Enum, text
 from sqlalchemy.orm import relationship
 import datetime
-from sqlalchemy import func
 from sqlalchemy.orm import sessionmaker  # 导入 sessionmaker
 import random
 import string
+from decimal import Decimal
 
 logger = Logger('gpt', log_to_file=True, filename='info.log')
 logger_common = Logger('common', log_to_file=True, filename='gate.log')

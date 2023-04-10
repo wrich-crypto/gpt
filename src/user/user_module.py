@@ -71,6 +71,9 @@ def get_reward(inviter_recharge, invitee_recharge):
 
 def update_user_balance(user_id, reward):
     userBalance = UserBalance.query(session, user_id=user_id)
+    print(reward)
+    reward = Decimal(reward)
+    print(reward)
 
     if userBalance is None:
         total_recharge = reward
@@ -128,17 +131,21 @@ def register_verification(registration_type, verification_code, email, phone):
 
     if registration_type == verification_type_email:
         if email is None or email == '':
+            logger.error(f'email:{email} is null')
             return False
 
         if User.exists(session, email=email):
+            logger.error(f'email:{email} exist')
             return False
 
         verification = VerificationCode.query(session, code_type=registration_type, email=email)
     elif registration_type == verification_type_phone:
         if phone is None or phone == '':
+            logger.error(f'phone:{phone} is null')
             return False
 
         if User.exists(session, phone=phone):
+            logger.error(f'phone:{phone} exist')
             return False
 
         verification = VerificationCode.query(session, code_type=registration_type, phone=phone)
@@ -146,9 +153,20 @@ def register_verification(registration_type, verification_code, email, phone):
         return False
 
     if not verification:
+        logger.error(f'verification not find'
+                     f'registration_type:{registration_type},'
+                     f'verification_code:{verification_code},'
+                     f'email:{email},'
+                     f'phone:{phone},')
         return False
 
     if verification.code != verification_code:
+        logger.error(f'verification not find'
+                     f'registration_type:{registration_type},'
+                     f'verification_code:{verification_code},'
+                     f'email:{email},'
+                     f'phone:{phone},'
+                     f'verification.code:{verification.code}')
         return False
 
     return True

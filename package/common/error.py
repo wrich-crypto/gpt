@@ -26,6 +26,8 @@ class ErrorCode:
             return {'code': ErrorCode.ERROR_UNKNOWN, 'msg': 'Unknown error'}
         elif error_code == ErrorCode.ERROR_INVALID_PARAMETER:
             return {'code': ErrorCode.ERROR_INVALID_PARAMETER, 'msg': 'Invalid parameter'}
+        elif message != '':
+            return ErrorCode.custom_error(error_code, message)
         else:
             return {'code': ErrorCode.ERROR_UNKNOWN, 'msg': 'Unknown error'}
 
@@ -34,4 +36,4 @@ class ErrorCode:
         return {'code': error_code, 'msg': error_message}
 
 def error_response(error_code, message):
-    return error_response(error_code=error_code, message=message)
+    return ErrorCode.error(error_code=error_code, message=message)

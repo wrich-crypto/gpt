@@ -23,7 +23,12 @@ def handle_admin_totalrevenue():
     if not user:
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "Invalid token")
 
-    total_revenue = UserBalance.sum(session, column='pay_amount')
+    total_revenue, e = UserRecharge.sum(session, column='pay_amount')
+
+    if total_revenue is None:
+        logger.error(f'handle_admin_totalrevenue UserBalance.sum error:{e}')
+        total_revenue = 0
+
     response_data = ErrorCode.success({'total': total_revenue})
 
     return jsonify(response_data)

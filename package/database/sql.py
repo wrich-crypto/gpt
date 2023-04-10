@@ -1,5 +1,6 @@
 from init import *
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import func
 
 from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
@@ -71,7 +72,11 @@ class BaseModel(Base):
     @classmethod
     def sum(cls, session, column, **kwargs):
         try:
-            return session.query(func.sum(cls.__dict__[column])).filter_by(**kwargs).scalar()
+            result = session.query(func.sum(cls.__dict__[column])).filter_by(**kwargs).scalar()
+            if result is not None:
+                return Decimal(result)
+            else:
+                return None
         except SQLAlchemyError as e:
             return None, str(e)
         except Exception as e:
