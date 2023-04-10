@@ -25,7 +25,7 @@ def gpt_content(prompt, max_try=1):
                 prompt=prompt,
                 temperature=0.5,
                 max_tokens=2048,
-                session=session
+                # session=session
             )
             current_try = current_try + 1
             return response.choices[0]
