@@ -14,7 +14,9 @@ def gpt_content(prompt, max_try=1):
             openai.api_key = api_key
 
             session = requests.Session()
-            session.proxies = {'https': proxy}
+
+            if proxy is not None and proxy != '':
+                session.proxies = {'https': proxy}
 
             response = openai.Completion.create(
                 model="text-davinci-003",
