@@ -24,11 +24,9 @@ def handle_chat_textchat():
         return jsonify(response_data)
 
     user_balance = UserBalance.query(session, user_id=user.id)
-    remaining_balance = user_balance.remaining_balance if user_balance else 0
-    consumed_amount = user_balance.consumed_amount if user_balance else 0
-
-    balance = remaining_balance - consumed_amount
-    if balance <= 0:
+    remaining_balance = (user_balance.total_recharge - user_balance.consumed_amount) if user_balance else 0
+    remaining_balance = remaining_balance if remaining_balance >= 0 else 0
+    if remaining_balance <= 0:
         response_data = ErrorCode.error(ErrorCode.ERROR_INVALID_PARAMETER, "Insufficient balance")
         return jsonify(response_data)
 
