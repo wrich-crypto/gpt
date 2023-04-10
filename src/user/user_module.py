@@ -55,6 +55,8 @@ class VerificationCode(BaseModel):
     __tablename__ = 'verification_code'
     id = Column(Integer, primary_key=True, autoincrement=True)
     username = Column(String(100), nullable=False)
+    email = Column(String(100), nullable=False)
+    phone = Column(String(100), nullable=False)
     code_type = Column(String(10), nullable=False)              #1邮箱2手机
     code = Column(String(10), nullable=False)
     expired_at = Column(TIMESTAMP, server_default=text("CURRENT_TIMESTAMP + INTERVAL '5' MINUTE"), nullable=False)
@@ -121,8 +123,13 @@ def generate_code():
     code = ''.join(random.choices(string.digits, k=6))
     return code
 
-def register_verification(registration_type, verification_code, username):
-    verification = VerificationCode.query(session, code_type=registration_type, username=username)
+def register_verification(registration_type, verification_code, email, phone):
+    if verification_code == verification_type_email:
+        verification = VerificationCode.query(session, code_type=registration_type, email=email)
+    elif verification_code == verification_type_phone:
+        verification = VerificationCode.query(session, code_type=registration_type, phone=phone)
+    else:
+        return False
 
     if not verification:
         return False
