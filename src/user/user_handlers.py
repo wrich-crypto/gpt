@@ -50,8 +50,8 @@ def handle_user_registration():
         return jsonify(response_data)
 
     if User.exists(session, username=username) or \
-            User.exists(session, email=email) or \
-            User.exists(session, phone=phone):
+            (email != '' and User.exists(session, email=email)) or \
+            (phone != '' and User.exists(session, phone=phone)):
         logger.info(f'account exist username:{username}, email:{email}, phone:{phone}')
         response_data = ErrorCode.error(error_code=ErrorCode.ERROR_INVALID_PARAMETER, message='account exist')
         return jsonify(response_data)
