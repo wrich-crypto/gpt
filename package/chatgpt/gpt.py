@@ -9,6 +9,7 @@ def gpt_content(prompt, max_try=1):
     while current_try < max_try:
         # proxy = hot_config.get_next_proxy()
         api_key = hot_config.get_next_api_key()
+        print(api_key)
 
         try:
             openai.api_key = api_key
