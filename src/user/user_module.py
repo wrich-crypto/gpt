@@ -51,6 +51,16 @@ class UserRecharge(BaseModel):
     status = Column(Integer, nullable=False)                    #1成功 2失败
     created_at = Column(TIMESTAMP, default='CURRENT_TIMESTAMP', nullable=False)
 
+    @classmethod
+    def total_pay_amount(cls, session):
+        try:
+            total = session.query(func.sum(cls.pay_amount)).scalar()
+            return total if total is not None else Decimal('0.00'), None
+        except SQLAlchemyError as e:
+            return None, str(e)
+        except Exception as e:
+            return None, str(e)
+
 class VerificationCode(BaseModel):
     __tablename__ = 'verification_code'
     id = Column(Integer, primary_key=True, autoincrement=True)

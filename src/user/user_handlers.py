@@ -228,7 +228,7 @@ def handle_payment():
     # ...
 
     token_amount = amount * 10000
-    instance, e = UserRecharge.create(session, user_id=user.id, amount=token_amount,
+    instance, e = UserRecharge.create(session, user_id=user.id, amount=token_amount, pay_amount=amount,
                                       recharge_method=recharge_method_pay, status=status_success)
     if instance is None:
         logger.error(f'UserRecharge.create inviter_id:{user.id} error:{e}')
