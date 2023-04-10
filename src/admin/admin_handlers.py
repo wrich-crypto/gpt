@@ -40,7 +40,8 @@ def handle_admin_userbalance():
         return jsonify(response_data)
 
     user_balance = UserBalance.query(session, user_id=user_id)
-    remaining_balance = user_balance.remaining_balance if user_balance else 0
+    remaining_balance = (user_balance.total_recharge - user_balance.consumed_amount) if user_balance else 0
+    remaining_balance = remaining_balance if remaining_balance >= 0 else 0
 
     response_data = ErrorCode.success({'remaining_balance': remaining_balance})
     return jsonify(response_data)

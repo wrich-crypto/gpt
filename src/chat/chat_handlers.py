@@ -52,11 +52,20 @@ def handle_chat_textchat():
 
 @chat_bp.route('/history/<int:channel_id>', methods=['GET'])
 def get_history(channel_id):
+    token = request.args.get('token')
     try:
-        chat_history = ChatMessage.query_all(session, channel_id=channel_id)
+        user = User.query(session, token=token)
+        if not user:
+            response_data = ErrorCode.error(ErrorCode.ERROR_INVALID_PARAMETER, "Invalid token")
+            return jsonify(response_data)
+
+        chat_history = ChatMessage.query_all(session, user_id=user, channel_id=channel_id)
         response_data = ErrorCode.success({
             'chat_history': [
                 {
+                    'user_id': message.user_id,
+                    'channel_id': message.channel_id,
+                    'message_id': message.message_id,
                     'question': message.question,
                     'answer': message.answer
                 } for message in chat_history
@@ -89,7 +98,13 @@ def get_channels():
 # 删除用户聊天频道
 @chat_bp.route('/channel/<int:channel_id>', methods=['DELETE'])
 def delete_channel(channel_id):
+    token = request.args.get('token')
     try:
+        user = User.query(session, token=token)
+        if not user:
+            response_data = ErrorCode.error(ErrorCode.ERROR_INVALID_PARAMETER, "Invalid token")
+            return jsonify(response_data)
+
         success, error = ChatChannel.delete_channel(session, channel_id)
         if success:
             response_data = ErrorCode.success({"message": "Channel deleted successfully"})
