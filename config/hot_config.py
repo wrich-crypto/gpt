@@ -19,6 +19,9 @@ class HotConfig:
     def __init__(self, config_file="config_hot.json"):
         global CONFIG_FILE
         CONFIG_FILE = config_file
+        self.config = self.load_config()
+        self.default_key = self.config['default_key']
+
         self.config_updated()
 
         event_handler = ConfigHandler(callback=self.config_updated)
