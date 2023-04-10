@@ -9,6 +9,9 @@ status_failed = 2
 code_type_email = 1
 code_type_phone = 2
 
+verification_type_email = 1
+verification_type_phone = 2
+
 class User(BaseModel):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -52,7 +55,7 @@ class VerificationCode(BaseModel):
     __tablename__ = 'verification_code'
     id = Column(Integer, primary_key=True, autoincrement=True)
     username = Column(String(100), nullable=False)
-    code_type = Column(String(10), nullable=False)
+    code_type = Column(String(10), nullable=False)              #1邮箱2手机
     code = Column(String(10), nullable=False)
     expired_at = Column(TIMESTAMP, server_default=text("CURRENT_TIMESTAMP + INTERVAL '5' MINUTE"), nullable=False)
 
@@ -120,3 +123,14 @@ def generate_referral_code():
 def generate_code():
     code = ''.join(random.choices(string.digits, k=6))
     return code
+
+def register_verification(registration_type, verification_code, username):
+    verification = VerificationCode.query(session, code_type=registration_type, username=username)
+
+    if not verification:
+        return False
+
+    if verification.code != verification_code:
+        return False
+
+    return True

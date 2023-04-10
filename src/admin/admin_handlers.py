@@ -22,8 +22,7 @@ def handle_admin_totalrevenue():
 
     user = User.query(session, token=token)
     if not user:
-        response_data = ErrorCode.error(-1, "Invalid token")
-        return jsonify(response_data)
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "Invalid token")
 
     total_revenue = UserBalance.sum(session, column='pay_amount')
     response_data = ErrorCode.success({'total': total_revenue})

@@ -1,6 +1,7 @@
 from package.database.sql import *
 from config.config import Config
 from package.common.log import *
+from package.common.verify import *
 from package.common.token import hash_token
 from package.common.error import *
 from flask import jsonify

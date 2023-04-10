@@ -1,3 +1,5 @@
+from flask import jsonify
+
 class ErrorCode:
     SUCCESS = 0
     ERROR_INVALID_PARAMETER = -1
@@ -30,3 +32,7 @@ class ErrorCode:
     @staticmethod
     def custom_error(error_code, error_message):
         return {'code': error_code, 'msg': error_message}
+
+def error_response(error_code, message):
+    response_data = ErrorCode.error(error_code=error_code, message=message)
+    return jsonify(response_data)

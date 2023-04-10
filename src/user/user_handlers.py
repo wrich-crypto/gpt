@@ -22,15 +22,24 @@ def handle_user_login():
 @user_bp.route('/register', methods=['POST'])
 def handle_user_registration():
     username = request.form.get('username')
-    email = request.form.get('email')
-    verification_code = request.form.get('verification_code')
-    referral_code = request.form.get('referral_code')
-    phone = request.form.get('phone')
     password = request.form.get('password')
+
+    verification_type = request.form.get('verification_type')
+    verification_code = request.form.get('verification_code')
+
+    phone = request.form.get('phone')
+    email = request.form.get('email')
+    referral_code = request.form.get('referral_code')
     hash_password = hash_token(password)
     token = generate_token(username, hash_password)
 
     logger.info(f'register email:{email},verification_code:{verification_code},password:{password},hash_password:{hash_password}')
+
+    if register_verification(verification_type, verification_code, username) is False:
+        logger.error(f'handle_user_registration register_verification '
+                     f'username:{username} verification_type:{verification_type} '
+                     f'verification_code:{verification_code} error')
+        error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'verification error')
 
     if username == '' or password == '':
         response_data = ErrorCode.error(error_code=ErrorCode.ERROR_INVALID_PARAMETER)
@@ -82,9 +91,8 @@ def handle_user_invite():
     referral_user = User.query(session, referral_code=referral_code)
 
     if UserInvitation.exists(session, invitee_id=user.id):
-        logger.info(f'account referral already:{user.id}, referral_code:{referral_code}')
-        response_data = ErrorCode.error(ErrorCode.ERROR_INVALID_PARAMETER, 'account referral already')
-        return jsonify(response_data)
+        logger.error(f'account referral already:{user.id}, referral_code:{referral_code}')
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'account referral already')
 
     if referral_user is not None and referral_user.id > 0:
         generate_invication(referral_user.id, user.id)
@@ -122,6 +130,11 @@ def handle_get_phone_verification_code():
     username = request.form.get('username')
     phone = request.form.get('phone')
 
+    if validate_phone_number(phone) is False:
+        logger.error(f'handle_get_phone_verification_code, '
+                     f'validate_phone_number, username:{username}, phone:{phone} error')
+        error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'phone error')
+
     code = generate_code()
 
     # third part service
@@ -140,6 +153,10 @@ def handle_get_email_verification_code():
     email = request.form.get('email')
 
     code = generate_code()
+    if validate_email(email) is False:
+        logger.error(f'handle_get_email_verification_code, '
+                     f'validate_email, username:{username}, email:{email} error')
+        error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'email error')
 
     # third part service
     # ...
