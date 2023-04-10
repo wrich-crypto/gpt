@@ -15,4 +15,3 @@ class Config:
         self.db_username = config['database']['username']
         self.db_password = config['database']['password']
         self.db_name = config['database']['name']
-        self.openai_key = config['apikey']

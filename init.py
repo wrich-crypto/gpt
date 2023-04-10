@@ -1,5 +1,6 @@
 from package.database.sql import *
 from config.config import Config
+from config.hot_config import *
 from package.common.log import *
 from package.common.verify import *
 from package.common.token import hash_token
@@ -17,6 +18,7 @@ import string
 
 logger = Logger('gpt', log_to_file=True, filename='info.log')
 logger_common = Logger('common', log_to_file=True, filename='gate.log')
+hot_config = HotConfig()
 
 main_config = Config('config.json')
 engine = create_engine(f"mysql+pymysql://{main_config.db_username}:{main_config.db_password}@{main_config.db_server}:{main_config.db_port}/{main_config.db_name}")

@@ -32,8 +32,7 @@ def handle_chat_textchat():
         response_data = ErrorCode.error(ErrorCode.ERROR_INVALID_PARAMETER, "Insufficient balance")
         return jsonify(response_data)
 
-    api_key = main_config.openai_key
-    content_obj = gpt_content(api_key=api_key, prompt=message)
+    content_obj = gpt_content(prompt=message)
 
     if content_obj is None:
         response_data = ErrorCode.error(ErrorCode.ERROR_INVALID_PARAMETER, "Error processing content")
