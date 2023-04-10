@@ -124,9 +124,23 @@ def generate_code():
     return code
 
 def register_verification(registration_type, verification_code, email, phone):
-    if verification_code == verification_type_email:
+    registration_type = int(registration_type)
+
+    if registration_type == verification_type_email:
+        if email is None or email == '':
+            return False
+
+        if User.exists(session, email=email):
+            return False
+
         verification = VerificationCode.query(session, code_type=registration_type, email=email)
-    elif verification_code == verification_type_phone:
+    elif registration_type == verification_type_phone:
+        if phone is None or phone == '':
+            return False
+
+        if User.exists(session, phone=phone):
+            return False
+
         verification = VerificationCode.query(session, code_type=registration_type, phone=phone)
     else:
         return False

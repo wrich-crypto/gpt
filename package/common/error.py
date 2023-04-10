@@ -34,5 +34,4 @@ class ErrorCode:
         return {'code': error_code, 'msg': error_message}
 
 def error_response(error_code, message):
-    response_data = ErrorCode.error(error_code=error_code, message=message)
-    return jsonify(response_data)
+    return error_response(error_code=error_code, message=message)

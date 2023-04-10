@@ -79,19 +79,32 @@ class BaseModel(Base):
 
     @classmethod
     def query(cls, session, **kwargs):
-        return session.query(cls).filter_by(**kwargs).first()
+        try:
+            return session.query(cls).filter_by(**kwargs).first()
+        except Exception as e:
+            print(e)
+            return None
 
     @classmethod
     def query_all(cls, session, **kwargs):
-        return session.query(cls).filter_by(**kwargs).all()
+        try:
+            return session.query(cls).filter_by(**kwargs).all(), None
+        except Exception as e:
+            return [], str(e)
 
     @classmethod
     def exists(cls, session, **kwargs):
-        return session.query(cls).filter_by(**kwargs).first() is not None
+        try:
+            return session.query(cls).filter_by(**kwargs).first() is not None
+        except Exception as e:
+            return False
 
     @classmethod
     def count(cls, session, **kwargs):
-        return session.query(cls).filter_by(**kwargs).count()
+        try:
+            return session.query(cls).filter_by(**kwargs).count()
+        except Exception as e:
+            return 0
 
     @classmethod
     def transaction(cls, session, actions):

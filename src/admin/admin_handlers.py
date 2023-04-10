@@ -8,8 +8,7 @@ def handle_admin_usercount():
 
     user = User.query(session, token=token)
     if not user:
-        response_data = ErrorCode.error(-1, "Invalid token")
-        return jsonify(response_data)
+        return error_response(-1, "Invalid token")
 
     count = User.count(session)
     response_data = ErrorCode.success({'count': count})
@@ -36,8 +35,7 @@ def handle_admin_userbalance():
 
     user = User.query(session, token=token)
     if not user:
-        response_data = ErrorCode.error(-1, "Invalid token")
-        return jsonify(response_data)
+        return error_response(-1, "Invalid token")
 
     user_balance = UserBalance.query(session, user_id=user_id)
     remaining_balance = (user_balance.total_recharge - user_balance.consumed_amount) if user_balance else 0

@@ -13,8 +13,7 @@ def handle_user_login():
 
     # validate the username and password
     if str(user.token) != str(token):
-        response_data = ErrorCode.error(-1)
-        return jsonify(response_data)
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'token invalid')
 
     response_data = ErrorCode.success({'token': token})
     return jsonify(response_data)
@@ -41,22 +40,14 @@ def handle_user_registration():
                      f'verification_type:{verification_type} '
                      f'email:{email}, phone:{phone}'
                      f'verification_code:{verification_code} error')
-        error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'verification error')
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'verification error')
 
     if username == '' or password == '':
-        response_data = ErrorCode.error(error_code=ErrorCode.ERROR_INVALID_PARAMETER)
-        return jsonify(response_data)
+        return error_response(error_code=ErrorCode.ERROR_INVALID_PARAMETER)
 
-    if (email is None and email == '') or (phone is None and phone == ''):
-        response_data = ErrorCode.error(error_code=ErrorCode.ERROR_INVALID_PARAMETER)
-        return jsonify(response_data)
-
-    if User.exists(session, username=username) or \
-            (email != '' and User.exists(session, email=email)) or \
-            (phone != '' and User.exists(session, phone=phone)):
+    if User.exists(session, username=username):
         logger.info(f'account exist username:{username}, email:{email}, phone:{phone}')
-        response_data = ErrorCode.error(error_code=ErrorCode.ERROR_INVALID_PARAMETER, message='account exist')
-        return jsonify(response_data)
+        return error_response(error_code=ErrorCode.ERROR_INVALID_PARAMETER, message='account exist')
 
     self_referral_code = generate_referral_code()
     instance, _ = User.create(session, username=username, password=hash_password, email=email,
@@ -64,8 +55,7 @@ def handle_user_registration():
 
     if instance is None:
         logger.info(f'account exist username:{username}, email:{email}, phone:{phone}')
-        response_data = ErrorCode.error(-1)
-        return jsonify(response_data)
+        return error_response(-1, "Invalid token")
 
     referral_user = User.query(session, referral_code=referral_code)
 
@@ -110,19 +100,17 @@ def handle_change_password():
 
     user = User.query(session, token=token)
     if not user:
-        response_data = ErrorCode.error(-1, "Invalid token")
-        return jsonify(response_data)
+        return error_response(-1, "Invalid token")
 
     if user.password != hash_password:
-        response_data = ErrorCode.error(-1, "Invalid password")
-        return jsonify(response_data)
+        return error_response(-1, "Invalid password")
 
     hashed_new_password = hash_token(new_password)
     success, error_message = User.update(session, {"id": user.id}, {"password": hashed_new_password})
     if success:
         response_data = ErrorCode.success()
     else:
-        response_data = ErrorCode.error(-1, error_message)
+        return error_response(-1, error_message)
 
     return jsonify(response_data)
 
@@ -141,7 +129,9 @@ def handle_get_phone_verification_code():
     # third part service
     # ...
 
-    instance, e = VerificationCode.create(session, username=username, code_type=code_type_phone, code=code)
+    instance, e = VerificationCode.upsert(session, {"phone": phone},
+                                          {"username": username, "code_type": code_type_phone,
+                                           "code": code, "phone": phone})
     if instance is None:
         logger.error(f'func handle_get_phone_verification_code, VerificationCode.create, username:{username} error: {e}')
 
@@ -162,7 +152,9 @@ def handle_get_email_verification_code():
     # third part service
     # ...
 
-    instance, e = VerificationCode.create(session, username=username, code_type=code_type_phone, code=code)
+    instance, e = VerificationCode.upsert(session, {"email": email},
+                                          {"username": username, "code_type": code_type_email,
+                                           "code": code, "email": email})
     if instance is None:
         logger.error(f'func handle_get_phone_verification_code, VerificationCode.create, username:{username} error: {e}')
 
@@ -175,11 +167,10 @@ def handle_get_user_invitations():
 
     user = User.query(session, token=token)
     if not user:
-        response_data = ErrorCode.error(-1, "Invalid token")
-        return jsonify(response_data)
+        return error_response(-1, "Invalid token")
 
     print(user.id)
-    invitations = UserInvitation.query_all(session, inviter_id=user.id)
+    invitations, _ = UserInvitation.query_all(session, inviter_id=user.id)
 
     invitation_data = []
     for invitation in invitations:
@@ -198,8 +189,7 @@ def handle_get_remaining_tokens():
 
     user = User.query(session, token=token)
     if not user:
-        response_data = ErrorCode.error(-1, "Invalid token")
-        return jsonify(response_data)
+        return error_response(-1, "Invalid token")
 
     user_balance = UserBalance.query(session, user_id=user.id)
     if not user_balance:
@@ -218,8 +208,7 @@ def handle_payment():
 
     user = User.query(session, token=token)
     if not user:
-        response_data = ErrorCode.error(-1, "Invalid token")
-        return jsonify(response_data)
+        return error_response(-1, "Invalid token")
 
     # 在此处实现支付功能，可能需要与支付服务集成
     # ...
