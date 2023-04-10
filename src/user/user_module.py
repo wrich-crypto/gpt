@@ -71,17 +71,14 @@ def update_user_balance(user_id, reward):
     userBalance = UserBalance.query(session, user_id=user_id)
 
     if userBalance is None:
-        remaining_balance = reward
         total_recharge = reward
         consumed_amount = 0
     else:
-        remaining_balance = userBalance.remaining_balance + reward
         total_recharge = userBalance.total_recharge + reward
         consumed_amount = userBalance.consumed_amount
 
     result, e = UserBalance.upsert(session, {'user_id': user_id},
-                       {'user_id': user_id, 'remaining_balance': remaining_balance,
-                        'total_recharge': total_recharge, 'consumed_amount': consumed_amount})
+                       {'user_id': user_id, 'total_recharge': total_recharge, 'consumed_amount': consumed_amount})
 
     if result is False:
         logger.error(f'user_id:{user_id} update_balance_amount:{reward} error:{e}')
