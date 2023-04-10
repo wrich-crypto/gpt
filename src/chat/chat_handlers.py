@@ -28,18 +28,19 @@ def handle_chat_textchat():
     if remaining_balance <= 0:
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "Insufficient balance")
 
-    content_obj = gpt_content(prompt=message)
+    content, tokens_consumed = gpt_content_and_usage(prompt=message)
 
-    if content_obj is None:
+    if content is None or content == '':
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "Error processing content")
 
-    content = content_obj.text
-    # tokens_consumed = content_obj.usage["total_tokens"]
+    tokens_consumed = Decimal(tokens_consumed)
+    ChatMessage.create(session, user_id=user.id, channel_id=channel, message_id=messageId,
+                       question=message, answer=content, tokens_consumed=tokens_consumed)
 
-    # success, error = UserBalance.update(session, conditions={"user_id": user.id},
-    #                                     updates={"consumed_amount": UserBalance.consumed_amount + tokens_consumed})
-    # if not success:
-    #     return error_response(ErrorCode.ERROR_INVALID_PARAMETER, error)
+    success, error = UserBalance.update(session, conditions={"user_id": user.id},
+                                        updates={"consumed_amount": user_balance.consumed_amount + tokens_consumed})
+    if not success:
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, error)
 
     response_data = ErrorCode.success({'content': content})
     return jsonify(response_data)
@@ -52,7 +53,7 @@ def get_history(channel_id):
         if not user:
             return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "Invalid token")
 
-        chat_history, e = ChatMessage.query_all(session, user_id=user, channel_id=channel_id)
+        chat_history, e = ChatMessage.query_all(session, limit=100, user_id=user.id, channel_id=channel_id)
         print(chat_history)
 
         response_data = ErrorCode.success({

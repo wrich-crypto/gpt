@@ -91,9 +91,15 @@ class BaseModel(Base):
             return None
 
     @classmethod
-    def query_all(cls, session, **kwargs):
+    def query_all(cls, session, limit=None, offset=0, **kwargs):
         try:
-            return session.query(cls).filter_by(**kwargs).all(), None
+            query = session.query(cls).filter_by(**kwargs)
+            if limit:
+                query = query.limit(limit)
+            if offset:
+                query = query.offset(offset)
+
+            return query.all(), None
         except Exception as e:
             return [], str(e)
 

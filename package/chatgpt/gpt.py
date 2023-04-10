@@ -9,8 +9,6 @@ def gpt_content(prompt, max_try=1):
     while current_try < max_try:
         proxy = hot_config.get_next_proxy()
         api_key = hot_config.get_next_api_key()
-        # api_key = hot_config.default_key
-        print(api_key)
 
         try:
             openai.api_key = api_key
@@ -28,9 +26,42 @@ def gpt_content(prompt, max_try=1):
                 # session=session
             )
             current_try = current_try + 1
+            print(response)
             return response.choices[0]
 
         except Exception as e:
             print(f"Error occurred: {e}")
             current_try = current_try + 1
             continue
+
+def gpt_content_and_usage(prompt, max_try=1):
+    current_try = 0
+
+    while current_try < max_try:
+        proxy = hot_config.get_next_proxy()
+        api_key = hot_config.get_next_api_key()
+
+        try:
+            openai.api_key = api_key
+            session = requests.Session()
+
+            if proxy is not None and proxy != '':
+                session.proxies = {'https': proxy}
+
+            response = openai.Completion.create(
+                model="text-davinci-003",
+                prompt=prompt,
+                temperature=0.5,
+                max_tokens=2048,
+                # session=session
+            )
+            current_try = current_try + 1
+            print(response)
+            return response.choices[0].text, int(response.usage['total_tokens'])
+
+        except Exception as e:
+            print(f"Error occurred: {e}")
+            current_try = current_try + 1
+            continue
+
+    return '', 0

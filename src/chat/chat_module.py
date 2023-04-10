@@ -8,7 +8,7 @@ class ChatMessage(BaseModel):
     message_id = Column(Integer, nullable=False)
     question = Column(Text, nullable=False)
     answer = Column(Text,nullable=False)
-    tokens_consumed = Column(Integer, nullable=False)
+    tokens_consumed = Column(DECIMAL(10, 2), nullable=False)
     created_at = Column(TIMESTAMP, default='CURRENT_TIMESTAMP', nullable=False)
 
 class ChatChannel(BaseModel):
