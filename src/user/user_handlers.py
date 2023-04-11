@@ -92,7 +92,7 @@ def handle_user_invite():
     referral_code = request.form.get('referral_code')
     logger.info(f'token:{token}, referral_code:{referral_code}')
 
-    if referral_code is None or referral_code is '':
+    if referral_code is None or referral_code == '':
         logger.error(f'referral_code:{referral_code}')
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER)
 
