@@ -10,6 +10,10 @@ class Config:
 
         self.server = config['server']
         self.port = config['port']
+        self.access_key_id = config['access_key_id']
+        self.access_key_secret = config['access_key_secret']
+        self.sign_name = config['sign_name']
+        self.template_code = config['template_code']
         self.db_server = config['database']['server']
         self.db_port = config['database']['port']
         self.db_username = config['database']['username']

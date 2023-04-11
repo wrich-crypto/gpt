@@ -140,14 +140,22 @@ def handle_get_phone_verification_code():
 
     code = generate_code()
 
-    # third part service
-    # ...
+    sign_name = main_config.sign_name
+    template_code = main_config.template_code
+    template_param = '{"code":' + str(code) + '}'
+    err = sms_client.send_message(phone, sign_name, template_code, template_param)
+
+    if err is not None:
+        logger.error(f'handle_get_phone_verification_code, '
+                     f'sms_client.send_message, username:{username}, phone:{phone} error:{err}')
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'phone error')
 
     instance, e = VerificationCode.upsert(session, {"phone": phone},
                                           {"username": username, "code_type": code_type_phone,
                                            "code": code, "phone": phone})
     if instance is None:
         logger.error(f'func handle_get_phone_verification_code, VerificationCode.create, username:{username} error: {e}')
+        return error_response(ErrorCode.ERROR_INTERNAL_SERVER, 'server error')
 
     response_data = ErrorCode.success({'code': str(code)})
     return jsonify(response_data)

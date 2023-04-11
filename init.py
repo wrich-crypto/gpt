@@ -15,6 +15,7 @@ from sqlalchemy.orm import sessionmaker  # 导入 sessionmaker
 import random
 import string
 from decimal import Decimal
+from package.sms.sms import *
 
 logger = Logger('gpt', log_to_file=True, filename='info.log')
 logger_common = Logger('common', log_to_file=True, filename='gate.log')
@@ -25,6 +26,7 @@ engine = create_engine(f"mysql+pymysql://{main_config.db_username}:{main_config.
 Session = sessionmaker(bind=engine)
 session = Session()
 baseDb = BaseModel()
+sms_client = SMSClientWrapper(main_config.access_key_id, main_config.access_key_secret)
 
 def config_init():
     pass
