@@ -171,8 +171,18 @@ def handle_get_email_verification_code():
                      f'validate_email, username:{username}, email:{email} error')
         error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'email error')
 
-    # third part service
-    # ...
+    single_send_mail_request = dm_20151123_models.SingleSendMailRequest()
+    single_send_mail_request.account_name = 'test@blk123.com'
+    single_send_mail_request.to_address = email
+    single_send_mail_request.subject = "验证码信息"
+    single_send_mail_request.html_body = f"<p>验证码为{code}.</p>"
+    single_send_mail_request.from_alias = "gpt"
+    single_send_mail_request.address_type = 1
+    single_send_mail_request.reply_to_address = False
+    err = email_client.send_email(single_send_mail_request)
+
+    if err is not None:
+        logger.error(f'handle_get_email_verification_code, email_client.send_email, email:{email} error:{err}')
 
     instance, e = VerificationCode.upsert(session, {"email": email},
                                           {"username": username, "code_type": code_type_email,

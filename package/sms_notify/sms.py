@@ -6,7 +6,6 @@ from alibabacloud_dysmsapi20170525.client import Client as Dysmsapi20170525Clien
 from alibabacloud_tea_openapi import models as open_api_models
 from alibabacloud_dysmsapi20170525 import models as dysmsapi_20170525_models
 from alibabacloud_tea_util import models as util_models
-from init import logger
 from alibabacloud_tea_util.client import Client as UtilClient
 
 
@@ -38,6 +37,5 @@ class SMSClientWrapper:
             response = self.client.send_sms_with_options(send_sms_request, runtime)
             return None
         except Exception as error:
-            logger.error(f'SMSClientWrapper, send_message, phone_number:{phone_number} error:{error}')
             return error
 

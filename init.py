@@ -15,7 +15,8 @@ from sqlalchemy.orm import sessionmaker  # 导入 sessionmaker
 import random
 import string
 from decimal import Decimal
-from package.sms.sms import *
+from package.sms_notify.sms import *
+from package.email_notify.email_client import *
 
 logger = Logger('gpt', log_to_file=True, filename='info.log')
 logger_common = Logger('common', log_to_file=True, filename='gate.log')
@@ -27,6 +28,7 @@ Session = sessionmaker(bind=engine)
 session = Session()
 baseDb = BaseModel()
 sms_client = SMSClientWrapper(main_config.access_key_id, main_config.access_key_secret)
+email_client = EmailClient(main_config.access_key_id, main_config.access_key_secret)
 
 def config_init():
     pass
