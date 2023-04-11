@@ -4,7 +4,11 @@ from ..user.user_module import *
 
 @admin_bp.route('/usercount', methods=['GET'])
 def handle_admin_usercount():
-    token = request.args.get('token')
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid token')
+
+    token = auth_header[7:]
 
     user = User.query(session, token=token)
     if not user:
@@ -17,7 +21,11 @@ def handle_admin_usercount():
 
 @admin_bp.route('/totalrevenue', methods=['GET'])
 def handle_admin_totalrevenue():
-    token = request.args.get('token')
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid token')
+
+    token = auth_header[7:]
 
     user = User.query(session, token=token)
     if not user:
@@ -35,7 +43,11 @@ def handle_admin_totalrevenue():
 
 @admin_bp.route('/userbalance', methods=['GET'])
 def handle_admin_userbalance():
-    token = request.args.get('token')
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid token')
+
+    token = auth_header[7:]
     user_id = request.args.get('user_id')
 
     user = User.query(session, token=token)

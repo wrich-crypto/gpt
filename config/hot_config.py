@@ -50,3 +50,21 @@ class HotConfig:
     def stop(self):
         self.observer.stop()
         self.observer.join()
+
+    def remove_api_key(self, api_key):
+        if api_key in self.config["API_KEYS"]:
+            self.config["API_KEYS"].remove(api_key)
+            self.save_config()
+            self.config_updated()
+
+    def remove_proxy(self, proxy):
+        if proxy in self.config["IP_PROXIES"]:
+            self.config["IP_PROXIES"].remove(proxy)
+            self.save_config()
+            self.config_updated()
+
+    def save_config(self):
+        with open(CONFIG_FILE, 'w') as f:
+            json.dump(self.config, f, indent=4)
+
+hot_config = HotConfig()

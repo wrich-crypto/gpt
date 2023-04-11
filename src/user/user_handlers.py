@@ -17,8 +17,8 @@ def handle_user_login():
 
     # validate the username and password
     if str(user.token) != str(token):
-        logger.error(f'handle_user_login User.query, username:{username} token invalid')
-        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'token invalid')
+        logger.error(f'handle_user_login User.query, username:{username} password error, token invalid')
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'password error')
 
     response_data = ErrorCode.success({'token': token})
     return jsonify(response_data)
@@ -83,9 +83,18 @@ def handle_user_logout():
 
 @user_bp.route('/invite', methods=['POST'])
 def handle_user_invite():
-    token = request.form.get('token')
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid token')
+
+    token = auth_header[7:]
+
     referral_code = request.form.get('referral_code')
-    print(f'token:{token}, referral_code:{referral_code}')
+    logger.info(f'token:{token}, referral_code:{referral_code}')
+
+    if referral_code is None or referral_code is '':
+        logger.error(f'referral_code:{referral_code}')
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER)
 
     user = User.query(session, token=token)
     referral_user = User.query(session, referral_code=referral_code)
@@ -102,7 +111,12 @@ def handle_user_invite():
 
 @user_bp.route('/change_password', methods=['POST'])
 def handle_change_password():
-    token = request.form.get('token')
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid token')
+
+    token = auth_header[7:]
+
     password = request.form.get('password')
     hash_password = hash_token(password)
     new_password = request.form.get('new_password')
@@ -195,7 +209,11 @@ def handle_get_email_verification_code():
 
 @user_bp.route('/get_user_invitations', methods=['GET'])
 def handle_get_user_invitations():
-    token = request.args.get('token')
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid token')
+
+    token = auth_header[7:]
 
     user = User.query(session, token=token)
     if not user:
@@ -216,7 +234,11 @@ def handle_get_user_invitations():
 
 @user_bp.route('/get_remaining_tokens', methods=['GET'])
 def handle_get_remaining_tokens():
-    token = request.args.get('token')
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid token')
+
+    token = auth_header[7:]
 
     user = User.query(session, token=token)
     if not user:
@@ -234,7 +256,14 @@ def handle_get_remaining_tokens():
 
 @user_bp.route('/pay', methods=['POST'])
 def handle_payment():
-    token = request.form.get('token')
+    logger.info('update_user_balance')
+
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid token')
+
+    token = auth_header[7:]
+
     amount = int(request.form.get('amount'))
 
     user = User.query(session, token=token)
@@ -250,7 +279,6 @@ def handle_payment():
     if instance is None:
         logger.error(f'UserRecharge.create inviter_id:{user.id} error:{e}')
 
-    print('update_user_balance')
     update_user_balance(user.id, token_amount)
 
     response_data = ErrorCode.success()

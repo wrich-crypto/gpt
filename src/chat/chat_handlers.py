@@ -1,11 +1,17 @@
 from .chat_routes import *
-from package.chatgpt.gpt import *
+from package.chatgpt.chatgpt import *
 from .chat_module import *
 from ..user.user_module import *
+import json
 
 @chat_bp.route('/textchat', methods=['POST'])
 def handle_chat_textchat():
-    token = request.form.get('token')
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid token')
+
+    token = auth_header[7:]
+
     channel = request.form.get('channel')
     message = request.form.get('message')
     timestamp = request.form.get('timestamp')
@@ -28,7 +34,11 @@ def handle_chat_textchat():
     if remaining_balance <= 0:
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "Insufficient balance")
 
-    content, tokens_consumed = gpt_content_and_usage(prompt=message)
+    content, tokens_consumed, err = handle_chat(chat_manager=chat_manager, channel_id=channel, user_input=message)
+
+    if err is not None:
+        logger.error(f'handle_chat_textchat gpt chat handle_chat error:{err}')
+        return error_response(ErrorCode.ERROR_INTERNAL_SERVER)
 
     if content is None or content == '':
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "Error processing content")
@@ -42,12 +52,19 @@ def handle_chat_textchat():
     if not success:
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, error)
 
-    response_data = ErrorCode.success({'content': content})
-    return jsonify(response_data)
+    def generate_response():
+        response_data = ErrorCode.success({'content': content})
+        yield json.dumps(response_data)
+    return Response(stream_with_context(generate_response()), content_type='application/octet-stream')
 
 @chat_bp.route('/history/<string:channel_id>', methods=['GET'])
 def get_history(channel_id):
-    token = request.args.get('token')
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid token')
+
+    token = auth_header[7:]
+
     try:
         user = User.query(session, token=token)
         if not user:
@@ -73,7 +90,11 @@ def get_history(channel_id):
 
 @chat_bp.route('/channels', methods=['GET'])
 def get_channels():
-    token = request.args.get('token')
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid token')
+
+    token = auth_header[7:]
     try:
         user = User.query(session, token=token)
         if not user:
@@ -90,7 +111,11 @@ def get_channels():
 # 删除用户聊天频道
 @chat_bp.route('/channel/<int:channel_id>', methods=['DELETE'])
 def delete_channel(channel_id):
-    token = request.args.get('token')
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid token')
+
+    token = auth_header[7:]
     try:
         user = User.query(session, token=token)
         if not user:
