@@ -81,9 +81,7 @@ def get_reward(inviter_recharge, invitee_recharge):
 
 def update_user_balance(user_id, reward):
     userBalance = UserBalance.query(session, user_id=user_id)
-    print(reward)
     reward = Decimal(reward)
-    print(reward)
 
     if userBalance is None:
         total_recharge = reward
@@ -113,7 +111,7 @@ def generate_invication(inviter_id, invitee_id):
         logger.error(f'invitee already inviter_id:{inviter_id} error:{e}')
         return
 
-    print('UserRecharge')
+    logger.info('UserRecharge')
     instance, e = UserRecharge.create(session, user_id=inviter_id, amount=inviter_reward,
                                       recharge_method=recharge_method_invite, status=status_success)
     if instance is None:
@@ -124,7 +122,7 @@ def generate_invication(inviter_id, invitee_id):
     if instance is None:
         logger.error(f'UserRecharge.create inviter_id:{inviter_id} error:{e}')
 
-    print('update_user_balance')
+    logger.info('update_user_balance')
     update_user_balance(inviter_id, inviter_reward)
     update_user_balance(invitee_id, invitee_reward)
 

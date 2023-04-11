@@ -87,7 +87,7 @@ class BaseModel(Base):
         try:
             return session.query(cls).filter_by(**kwargs).first()
         except Exception as e:
-            print(e)
+            print(f'query error:{e}')
             return None
 
     @classmethod

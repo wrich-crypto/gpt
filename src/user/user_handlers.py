@@ -76,7 +76,7 @@ def handle_user_registration():
 
 @user_bp.route('/logout')
 def handle_user_logout():
-    print('logout')
+    logger.info('logout')
 
     response_data = ErrorCode.success()
     return jsonify(response_data)
@@ -183,7 +183,6 @@ def handle_get_user_invitations():
     if not user:
         return error_response(-1, "Invalid token")
 
-    print(user.id)
     invitations, _ = UserInvitation.query_all(session, inviter_id=user.id)
 
     invitation_data = []

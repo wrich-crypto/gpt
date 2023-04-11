@@ -54,7 +54,6 @@ def get_history(channel_id):
             return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "Invalid token")
 
         chat_history, e = ChatMessage.query_all(session, limit=100, user_id=user.id, channel_id=channel_id)
-        print(chat_history)
 
         response_data = ErrorCode.success({
             'chat_history': [

@@ -26,7 +26,6 @@ def gpt_content(prompt, max_try=1):
                 # session=session
             )
             current_try = current_try + 1
-            print(response)
             return response.choices[0]
 
         except Exception as e:
@@ -56,7 +55,6 @@ def gpt_content_and_usage(prompt, max_try=1):
                 # session=session
             )
             current_try = current_try + 1
-            print(response)
             return response.choices[0].text, int(response.usage['total_tokens'])
 
         except Exception as e:
