@@ -175,7 +175,7 @@ def handle_get_email_verification_code():
     single_send_mail_request.account_name = 'test@blk123.com'
     single_send_mail_request.to_address = email
     single_send_mail_request.subject = "验证码信息"
-    single_send_mail_request.html_body = f"<p>验证码为{code}.</p>"
+    single_send_mail_request.html_body = f"<p>验证码为{str(code)}.</p>"
     single_send_mail_request.from_alias = "gpt"
     single_send_mail_request.address_type = 1
     single_send_mail_request.reply_to_address = False
