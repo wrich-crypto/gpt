@@ -36,7 +36,9 @@ def handle_chat_textchat():
     if remaining_balance <= 0:
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "Insufficient balance")
 
-    content, tokens_consumed, err = handle_chat(chat_manager=chat_manager, channel_id=channel, user_input=message)
+    api_key = hot_config.get_next_api_key()
+    content, tokens_consumed, err = handle_chat(chat_manager=chat_manager, channel_id=channel,
+                                                user_input=message, api_key=api_key)
 
     if err is not None:
         logger.error(f'handle_chat_textchat gpt chat handle_chat error:{err}')

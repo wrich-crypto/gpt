@@ -1,6 +1,5 @@
 from langchain.chains.conversation.memory import ConversationBufferMemory
 from langchain import OpenAI, LLMChain, PromptTemplate
-from config.hot_config import hot_config
 
 class ChatManager:
     def __init__(self):
@@ -34,10 +33,9 @@ class ChatManager:
 
         return llm_chain
 
-def handle_chat(chat_manager, channel_id, user_input):
+def handle_chat(chat_manager, channel_id, user_input, api_key):
     try:
         times = 1
-        api_key = hot_config.get_next_api_key()
         llm_chain = chat_manager.get_channel(channel_id, api_key)
         response = llm_chain.predict(human_input=user_input)
         return response, (500 * times), None

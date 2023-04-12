@@ -28,25 +28,25 @@ class UserInvitation(BaseModel):
     __tablename__ = 'user_invitations'
     id = Column(Integer, primary_key=True, autoincrement=True)
     inviter_id = Column(Integer, nullable=False)
-    inviter_reward = Column(DECIMAL(10, 2), nullable=False)
+    inviter_reward = Column(DECIMAL(20, 2), nullable=False)
     invitee_id = Column(Integer, nullable=False)
-    invitee_reward = Column(DECIMAL(10, 2), nullable=False)
+    invitee_reward = Column(DECIMAL(20, 2), nullable=False)
     created_at = Column(TIMESTAMP, default='CURRENT_TIMESTAMP', nullable=False)
 
 class UserBalance(BaseModel):
     __tablename__ = 'user_balances'
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, nullable=False)
-    total_recharge = Column(DECIMAL(10, 2), nullable=False)
-    consumed_amount = Column(DECIMAL(10, 2), nullable=False)
+    total_recharge = Column(DECIMAL(20, 2), nullable=False)
+    consumed_amount = Column(DECIMAL(20, 2), nullable=False)
     created_at = Column(TIMESTAMP, default='CURRENT_TIMESTAMP', nullable=False)
 
 class UserRecharge(BaseModel):
     __tablename__ = 'user_recharges'
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, nullable=False)
-    pay_amount = Column(DECIMAL(10, 2), nullable=False)
-    amount = Column(DECIMAL(10, 2), nullable=False)
+    pay_amount = Column(DECIMAL(20, 2), nullable=False)
+    amount = Column(DECIMAL(20, 2), nullable=False)
     recharge_method = Column(Integer, nullable=False)           #1支付通道 2邀请
     status = Column(Integer, nullable=False)                    #1成功 2失败
     created_at = Column(TIMESTAMP, default='CURRENT_TIMESTAMP', nullable=False)
