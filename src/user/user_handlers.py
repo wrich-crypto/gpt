@@ -40,12 +40,14 @@ def handle_user_registration():
     logger.info(f'register email:{email}, phone:{phone}, '
                 f'verification_code:{verification_code},password:{password},hash_password:{hash_password}')
 
-    if register_verification(verification_type, verification_code, email, phone) is False:
+    success, err = register_verification(verification_type, verification_code, email, phone)
+    if success is False:
         logger.error(f'handle_user_registration register_verification '
                      f'verification_type:{verification_type} '
                      f'email:{email}, phone:{phone}'
-                     f'verification_code:{verification_code} error')
-        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'verification error')
+                     f'verification_code:{verification_code} error,'
+                     f'error: {err}')
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, err)
 
     if username == '' or password == '':
         logger.error(f'handle_user_registration register_verification '

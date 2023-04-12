@@ -140,25 +140,25 @@ def register_verification(registration_type, verification_code, email, phone):
     if registration_type == verification_type_email:
         if email is None or email == '':
             logger.error(f'email:{email} is null')
-            return False
+            return False, f'email:{email} is null'
 
         if User.exists(session, email=email):
             logger.error(f'email:{email} exist')
-            return False
+            return False, f'email:{email} exist'
 
         verification = VerificationCode.query(session, code_type=registration_type, email=email)
     elif registration_type == verification_type_phone:
         if phone is None or phone == '':
             logger.error(f'phone:{phone} is null')
-            return False
+            return False, f'phone:{phone} is null'
 
         if User.exists(session, phone=phone):
             logger.error(f'phone:{phone} exist')
-            return False
+            return False, f'phone:{phone} exist'
 
         verification = VerificationCode.query(session, code_type=registration_type, phone=phone)
     else:
-        return False
+        return False, f'registration_type:{registration_type} error'
 
     if not verification:
         logger.error(f'verification not find'
@@ -166,7 +166,7 @@ def register_verification(registration_type, verification_code, email, phone):
                      f'verification_code:{verification_code},'
                      f'email:{email},'
                      f'phone:{phone},')
-        return False
+        return False, f'verification code error, send verification code again'
 
     if verification.code != verification_code:
         logger.error(f'verification not find'
@@ -175,6 +175,6 @@ def register_verification(registration_type, verification_code, email, phone):
                      f'email:{email},'
                      f'phone:{phone},'
                      f'verification.code:{verification.code}')
-        return False
+        return False, f'verification code error, send verification code again'
 
-    return True
+    return True, ''
