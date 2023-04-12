@@ -8,6 +8,7 @@ import json
 def handle_chat_textchat():
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
+        logger.error(f'Invalid token, auth_header:{auth_header}')
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid token')
 
     token = auth_header[7:]
@@ -26,6 +27,7 @@ def handle_chat_textchat():
     user = User.query(session, token=token)
 
     if not user:
+        logger.error(f'Invalid token, auth_header:{auth_header}')
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid token')
 
     user_balance = UserBalance.query(session, user_id=user.id)
@@ -61,6 +63,7 @@ def handle_chat_textchat():
 def get_history(channel_id):
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
+        logger.error(f'Invalid token, auth_header:{auth_header}')
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid token')
 
     token = auth_header[7:]
@@ -68,6 +71,7 @@ def get_history(channel_id):
     try:
         user = User.query(session, token=token)
         if not user:
+            logger.error(f'Invalid token, auth_header:{auth_header}')
             return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "Invalid token")
 
         chat_history, e = ChatMessage.query_all(session, limit=100, user_id=user.id, channel_id=channel_id)
@@ -92,12 +96,14 @@ def get_history(channel_id):
 def get_channels():
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
+        logger.error(f'Invalid token, auth_header:{auth_header}')
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid token')
 
     token = auth_header[7:]
     try:
         user = User.query(session, token=token)
         if not user:
+            logger.error(f'Invalid token, auth_header:{auth_header}')
             return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "Invalid token")
 
         channels = ChatChannel.get_channels_by_user(session, user.id)
@@ -113,12 +119,14 @@ def get_channels():
 def delete_channel(channel_id):
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
+        logger.error(f'Invalid token, auth_header:{auth_header}')
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid token')
 
     token = auth_header[7:]
     try:
         user = User.query(session, token=token)
         if not user:
+            logger.error(f'Invalid token, auth_header:{auth_header}')
             return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "Invalid token")
 
         success, error = ChatChannel.delete_channel(session, channel_id)

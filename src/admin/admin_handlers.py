@@ -6,12 +6,14 @@ from ..user.user_module import *
 def handle_admin_usercount():
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
+        logger.error(f'Invalid token, auth_header:{auth_header}')
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid token')
 
     token = auth_header[7:]
 
     user = User.query(session, token=token)
     if not user:
+        logger.error(f'Invalid token, auth_header:{auth_header}')
         return error_response(-1, "Invalid token")
 
     count = User.count(session)
@@ -23,12 +25,14 @@ def handle_admin_usercount():
 def handle_admin_totalrevenue():
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
+        logger.error(f'Invalid token, auth_header:{auth_header}')
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid token')
 
     token = auth_header[7:]
 
     user = User.query(session, token=token)
     if not user:
+        logger.error(f'Invalid token, auth_header:{auth_header}')
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "Invalid token")
 
     total_revenue, e = UserRecharge.total_pay_amount(session)
@@ -45,6 +49,7 @@ def handle_admin_totalrevenue():
 def handle_admin_userbalance():
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
+        logger.error(f'Invalid token, auth_header:{auth_header}')
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid token')
 
     token = auth_header[7:]
@@ -52,6 +57,7 @@ def handle_admin_userbalance():
 
     user = User.query(session, token=token)
     if not user:
+        logger.error(f'Invalid token, auth_header:{auth_header}')
         return error_response(-1, "Invalid token")
 
     user_balance = UserBalance.query(session, user_id=user_id)

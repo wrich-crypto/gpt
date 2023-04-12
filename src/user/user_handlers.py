@@ -87,6 +87,7 @@ def handle_user_logout():
 def handle_user_invite():
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
+        logger.error(f'Invalid token, auth_header:{auth_header}')
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid token')
 
     token = auth_header[7:]
@@ -115,6 +116,7 @@ def handle_user_invite():
 def handle_change_password():
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
+        logger.error(f'Invalid token, auth_header:{auth_header}')
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid token')
 
     token = auth_header[7:]
@@ -213,12 +215,14 @@ def handle_get_email_verification_code():
 def handle_get_user_invitations():
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
+        logger.error(f'Invalid token, auth_header:{auth_header}')
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid token')
 
     token = auth_header[7:]
 
     user = User.query(session, token=token)
     if not user:
+        logger.error(f'Invalid token, auth_header:{auth_header}')
         return error_response(-1, "Invalid token")
 
     invitations, _ = UserInvitation.query_all(session, inviter_id=user.id)
@@ -238,12 +242,14 @@ def handle_get_user_invitations():
 def handle_get_remaining_tokens():
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
+        logger.error(f'Invalid token, auth_header:{auth_header}')
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid token')
 
     token = auth_header[7:]
 
     user = User.query(session, token=token)
     if not user:
+        logger.error(f'Invalid token, auth_header:{auth_header}')
         return error_response(-1, "Invalid token")
 
     user_balance = UserBalance.query(session, user_id=user.id)
@@ -262,6 +268,7 @@ def handle_payment():
 
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
+        logger.error(f'Invalid token, auth_header:{auth_header}')
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid token')
 
     token = auth_header[7:]
@@ -270,6 +277,7 @@ def handle_payment():
 
     user = User.query(session, token=token)
     if not user:
+        logger.error(f'Invalid token, auth_header:{auth_header}')
         return error_response(-1, "Invalid token")
 
     # 在此处实现支付功能，可能需要与支付服务集成
