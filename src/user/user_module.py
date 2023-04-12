@@ -28,9 +28,9 @@ class UserInvitation(BaseModel):
     __tablename__ = 'user_invitations'
     id = Column(Integer, primary_key=True, autoincrement=True)
     inviter_id = Column(Integer, nullable=False)
-    inviter_reward = Column(DECIMAL(20, 2), nullable=False)
+    inviter_reward = Column(DECIMAL(10, 2), nullable=False)
     invitee_id = Column(Integer, nullable=False)
-    invitee_reward = Column(DECIMAL(20, 2), nullable=False)
+    invitee_reward = Column(DECIMAL(10, 2), nullable=False)
     created_at = Column(TIMESTAMP, default='CURRENT_TIMESTAMP', nullable=False)
 
 class UserBalance(BaseModel):
