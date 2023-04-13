@@ -4,6 +4,7 @@ from ..user.user_module import *
 
 @admin_bp.route('/usercount', methods=['GET'])
 def handle_admin_usercount():
+    session = g.session
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
         logger.error(f'Invalid token, auth_header:{auth_header}')
@@ -23,6 +24,7 @@ def handle_admin_usercount():
 
 @admin_bp.route('/totalrevenue', methods=['GET'])
 def handle_admin_totalrevenue():
+    session = g.session
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
         logger.error(f'Invalid token, auth_header:{auth_header}')
@@ -47,6 +49,7 @@ def handle_admin_totalrevenue():
 
 @admin_bp.route('/userbalance', methods=['GET'])
 def handle_admin_userbalance():
+    session = g.session
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
         logger.error(f'Invalid token, auth_header:{auth_header}')

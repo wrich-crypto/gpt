@@ -1,6 +1,7 @@
 from init import *
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import func
+from decimal import Decimal
 
 from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()

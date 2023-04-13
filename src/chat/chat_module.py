@@ -14,7 +14,7 @@ class ChatMessage(BaseModel):
 class ChatChannel(BaseModel):
     __tablename__ = 'chat_channels'
     id = Column(Integer, primary_key=True, autoincrement=True)
-    channel_id = Column(Integer, nullable=False)
+    channel_id = Column(String(100), nullable=True)
     user_id = Column(Integer, nullable=False)
     status = Column(Integer, nullable=False)
     created_at = Column(TIMESTAMP, default='CURRENT_TIMESTAMP', nullable=False)

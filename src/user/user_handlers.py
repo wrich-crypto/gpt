@@ -3,6 +3,7 @@ from .user_module import *
 
 @user_bp.route('/login', methods=['POST'])
 def handle_user_login():
+    session = g.session
     username = request.form.get('username')
     password = request.form.get('password')
     hash_password = hash_token(password)
@@ -25,6 +26,7 @@ def handle_user_login():
 
 @user_bp.route('/register', methods=['POST'])
 def handle_user_registration():
+    session = g.session
     username = request.form.get('username')
     password = request.form.get('password')
 
@@ -78,6 +80,7 @@ def handle_user_registration():
 
 @user_bp.route('/logout')
 def handle_user_logout():
+    session = g.session
     logger.info('logout')
 
     response_data = ErrorCode.success()
@@ -85,6 +88,7 @@ def handle_user_logout():
 
 @user_bp.route('/invite', methods=['POST'])
 def handle_user_invite():
+    session = g.session
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
         logger.error(f'Invalid token, auth_header:{auth_header}')
@@ -114,6 +118,7 @@ def handle_user_invite():
 
 @user_bp.route('/change_password', methods=['POST'])
 def handle_change_password():
+    session = g.session
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
         logger.error(f'Invalid token, auth_header:{auth_header}')
@@ -148,13 +153,14 @@ def handle_change_password():
 
 @user_bp.route('/get_phone_verification_code', methods=['POST'])
 def handle_get_phone_verification_code():
+    session = g.session
     username = request.form.get('username')
     phone = request.form.get('phone')
 
     if validate_phone_number(phone) is False:
         logger.error(f'handle_get_phone_verification_code, '
                      f'validate_phone_number, username:{username}, phone:{phone} error')
-        error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'phone error')
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'phone error')
 
     code = generate_code()
 
@@ -180,6 +186,7 @@ def handle_get_phone_verification_code():
 
 @user_bp.route('/get_email_verification_code', methods=['POST'])
 def handle_get_email_verification_code():
+    session = g.session
     username = request.form.get('username')
     email = request.form.get('email')
 
@@ -187,7 +194,7 @@ def handle_get_email_verification_code():
     if validate_email(email) is False:
         logger.error(f'handle_get_email_verification_code, '
                      f'validate_email, username:{username}, email:{email} error')
-        error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'email error')
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'email error')
 
     single_send_mail_request = dm_20151123_models.SingleSendMailRequest()
     single_send_mail_request.account_name = 'test@blk123.com'
@@ -213,6 +220,7 @@ def handle_get_email_verification_code():
 
 @user_bp.route('/get_user_invitations', methods=['GET'])
 def handle_get_user_invitations():
+    session = g.session
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
         logger.error(f'Invalid token, auth_header:{auth_header}')
@@ -240,6 +248,7 @@ def handle_get_user_invitations():
 
 @user_bp.route('/get_remaining_tokens', methods=['GET'])
 def handle_get_remaining_tokens():
+    session = g.session
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
         logger.error(f'Invalid token, auth_header:{auth_header}')
@@ -264,6 +273,7 @@ def handle_get_remaining_tokens():
 
 @user_bp.route('/pay', methods=['POST'])
 def handle_payment():
+    session = g.session
     logger.info('update_user_balance')
 
     auth_header = request.headers.get('Authorization')

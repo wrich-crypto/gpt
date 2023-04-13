@@ -1,11 +1,12 @@
 from .chat_routes import *
-from package.chatgpt.chatgpt import *
+from package.chatgpt.uchatgpt import *
 from .chat_module import *
 from ..user.user_module import *
 import json
 
 @chat_bp.route('/textchat', methods=['POST'])
 def handle_chat_textchat():
+    session = g.session
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
         logger.error(f'Invalid token, auth_header:{auth_header}')
@@ -36,33 +37,60 @@ def handle_chat_textchat():
     if remaining_balance <= 0:
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "Insufficient balance")
 
-    api_key = hot_config.get_next_api_key()
-    content, tokens_consumed, err = handle_chat(chat_manager=chat_manager, channel_id=channel,
-                                                user_input=message, api_key=api_key)
+    access_token = hot_config.get_next_api_key()
+    chat_api = ChatAPI(access_token)
 
-    if err is not None:
-        logger.error(f'handle_chat_textchat gpt chat handle_chat error:{err}')
-        return error_response(ErrorCode.ERROR_INTERNAL_SERVER)
+    def generate():
+        try:
+            channel_id = channel if channel and channel.strip() != "" else generate_uuid()
+            create_stream_response = chat_api.create_stream(message, channel_id)
+            stream_id = create_stream_response["data"]["streamId"]
 
-    if content is None or content == '':
-        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "Error processing content")
+            stream_response = chat_api.get_stream(stream_id)
+            content = ''
+            for chunk in stream_response.iter_content(chunk_size=None):
+                if chunk:
+                    decoded_chunk = chunk.decode("utf-8")
+                    decoded_chunk_obj = DecodedChunk(decoded_chunk)
 
+                    if decoded_chunk_obj.event == 'message':
+                        content = content + decoded_chunk_obj.data
+                    yield decoded_chunk
+
+            new_session = session_factory()
+
+            user = User.query(new_session, token=token)
+
+            if ChatChannel.exists(new_session, channel_id=channel_id, user_id=user.id, status=status_success) is False:
+                ChatChannel.upsert(new_session, {"channel_id": channel_id, "user_id": user.id},
+                                        {"channel_id": channel_id, "user_id": user.id, "status": status_success})
+
+            ChatMessage.create(new_session, user_id=user.id, channel_id=channel, message_id=messageId,
+                               question=message, answer=content, tokens_consumed=tokens_consumed)
+            new_session.close()
+
+        except Exception as e:
+            logger.error(e)
+            yield json.dumps(error_response(ErrorCode.ERROR_INTERNAL_SERVER, 'Internal server error'))
+
+    tokens_consumed = 500
     tokens_consumed = Decimal(tokens_consumed)
-    ChatMessage.create(session, user_id=user.id, channel_id=channel, message_id=messageId,
-                       question=message, answer=content, tokens_consumed=tokens_consumed)
 
     success, error = UserBalance.update(session, conditions={"user_id": user.id},
                                         updates={"consumed_amount": user_balance.consumed_amount + tokens_consumed})
     if not success:
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, error)
 
-    def generate_response():
-        response_data = ErrorCode.success({'content': content})
-        yield json.dumps(response_data)
-    return Response(stream_with_context(generate_response()), content_type='application/octet-stream')
+    headers = {
+        "Content-Type": "text/event-stream",
+        "Transfer-Encoding": "chunked",
+        "Cache-Control": "no-cache",
+    }
+    return Response(generate(), headers=headers)
 
 @chat_bp.route('/history/<string:channel_id>', methods=['GET'])
 def get_history(channel_id):
+    session = g.session
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
         logger.error(f'Invalid token, auth_header:{auth_header}')
@@ -96,6 +124,7 @@ def get_history(channel_id):
 
 @chat_bp.route('/channels', methods=['GET'])
 def get_channels():
+    session = g.session
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
         logger.error(f'Invalid token, auth_header:{auth_header}')
@@ -104,11 +133,12 @@ def get_channels():
     token = auth_header[7:]
     try:
         user = User.query(session, token=token)
+
         if not user:
             logger.error(f'Invalid token, auth_header:{auth_header}')
             return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "Invalid token")
 
-        channels = ChatChannel.get_channels_by_user(session, user.id)
+        channels = ChatChannel.get_channels_by_user(session, user_id=user.id, status=status_success)
         response_data = ErrorCode.success({'channels': [channel.serialize() for channel in channels]})
         return jsonify(response_data)
 
@@ -116,9 +146,9 @@ def get_channels():
         logger.error(f"Error while getting channels: {str(e)}")
         return error_response(ErrorCode.ERROR_INTERNAL_SERVER, "Error getting channels")
 
-# 删除用户聊天频道
 @chat_bp.route('/channel/<int:channel_id>', methods=['DELETE'])
 def delete_channel(channel_id):
+    session = g.session
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
         logger.error(f'Invalid token, auth_header:{auth_header}')
@@ -137,6 +167,7 @@ def delete_channel(channel_id):
             return jsonify(response_data)
         else:
             return error_response(ErrorCode.ERROR_INTERNAL_SERVER, error)
+
     except Exception as e:
         logger.error(f"Error while deleting channel: {str(e)}")
         return error_response(ErrorCode.ERROR_INTERNAL_SERVER, "Error deleting channel")

@@ -19,6 +19,12 @@ app.register_blueprint(chat_bp)
 def before_request():
     form_data = request.form
     logger_common.info(f'Received request: {request.method} {request.path}, form_data: {form_data}')
+    g.session = session_factory()
+
+@app.teardown_request
+def teardown_request(exception):
+    g.session.close()
+    g.pop('session', None)
 
 if __name__ == '__main__':
     app.run(host=main_config.server, port=main_config.port)
