@@ -143,10 +143,6 @@ def get_channels():
             return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "Invalid token")
 
         channels = ChatChannel.get_channels_by_user(session, user_id=user.id, status=status_success)
-
-        for c in channels:
-            print(c)
-
         channels_data = []
         for channel in channels:
             channels_data.append({"channel_id": channel.channel_id})
