@@ -61,6 +61,10 @@ def handle_chat_textchat():
 
             user = User.query(new_session, token=token)
 
+            if not user:
+                logger.error(f'Invalid token, token:{token}')
+                return
+
             if ChatChannel.exists(new_session, channel_id=channel_id, user_id=user.id, status=status_success) is False:
                 ChatChannel.upsert(new_session, {"channel_id": channel_id, "user_id": user.id},
                                         {"channel_id": channel_id, "user_id": user.id, "status": status_success})
@@ -139,7 +143,15 @@ def get_channels():
             return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "Invalid token")
 
         channels = ChatChannel.get_channels_by_user(session, user_id=user.id, status=status_success)
-        response_data = ErrorCode.success({'channels': [channel.serialize() for channel in channels]})
+
+        for c in channels:
+            print(c)
+
+        channels_data = []
+        for channel in channels:
+            channels_data.append({"channel_id": channel.channel_id})
+
+        response_data = ErrorCode.success({'channels': channels_data})
         return jsonify(response_data)
 
     except Exception as e:
