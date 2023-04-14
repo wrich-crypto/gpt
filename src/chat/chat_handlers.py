@@ -94,7 +94,7 @@ def handle_chat_textchat():
         "Transfer-Encoding": "chunked",
         "Cache-Control": "no-cache",
     }
-    return Response(generate(channel, message, token, messageId, tokens_consumed), headers=headers)
+    return Response(generate(channel, message, token, messageId, tokens_consumed), content_type='text/event-stream', headers=headers)
 
 @chat_bp.route('/history/<string:channel_id>', methods=['GET'])
 def get_history(channel_id):
