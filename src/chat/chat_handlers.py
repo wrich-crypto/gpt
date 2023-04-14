@@ -30,6 +30,7 @@ def create_stream_with_retry(message, channel=None, max_attempts=None):
 
 def generate(channel, message, token, messageId, tokens_consumed):
     try:
+        channel = channel
         stream_response = create_stream_with_retry(message, channel, 3)
 
         content = ''
@@ -51,9 +52,9 @@ def generate(channel, message, token, messageId, tokens_consumed):
             logger.error(f'Invalid token, token:{token}')
             return
 
-        if ChatChannel.exists(new_session, channel_id=channel_id, user_id=user.id, status=status_success) is False:
-            ChatChannel.upsert(new_session, {"channel_id": channel_id, "user_id": user.id},
-                               {"channel_id": channel_id, "user_id": user.id,
+        if ChatChannel.exists(new_session, channel_id=channel, user_id=user.id, status=status_success) is False:
+            ChatChannel.upsert(new_session, {"channel_id": channel, "user_id": user.id},
+                               {"channel_id": channel, "user_id": user.id,
                                 "status": status_success, "title": message})
 
         ChatMessage.create(new_session, user_id=user.id, channel_id=channel, message_id=messageId,
