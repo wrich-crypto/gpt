@@ -41,7 +41,6 @@ def generate(channel, message, token, messageId, tokens_consumed):
 
                 if decoded_chunk_obj.event == 'message':
                     content = content + decoded_chunk_obj.data
-                print(content)
                 yield decoded_chunk
 
         new_session = session_factory()
@@ -117,7 +116,7 @@ def handle_chat_textchat():
         }
         return Response(generate(channel, message, token, messageId, tokens_consumed), headers=headers)
     except Exception as e:
-        print(e)
+        logger.error(f"handle_chat_textchat error:{e}")
 
 @chat_bp.route('/history/<string:channel_id>', methods=['GET'])
 def get_history(channel_id):
