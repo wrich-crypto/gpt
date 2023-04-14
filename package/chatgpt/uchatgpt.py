@@ -16,7 +16,7 @@ class ChatAPI:
         url = f"{self.base_url}/chat/ask"
         payload = {"prompt": prompt,
                    "conversationId": conversation_id,
-                   "sceneId": 101,
+                   # "sceneId": 101,
                    "accessToken": self.access_token}
         response = requests.post(url, json=payload)
         return response.json()
@@ -25,7 +25,7 @@ class ChatAPI:
         url = f"{self.base_url}/chat/stream/create"
         payload = {"prompt": prompt,
                    "conversationId": conversation_id,
-                   "sceneId": 101,
+                   # "sceneId": 101,
                    "accessToken": self.access_token}
         response = requests.post(url, json=payload)
         return response.json()
