@@ -304,3 +304,33 @@ def handle_payment():
     response_data = ErrorCode.success()
     return jsonify(response_data)
 
+@user_bp.route('/get_user_info', methods=['GET'])
+def handle_get_user_info():
+    session = g.session
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        logger.error(f'Invalid token, auth_header:{auth_header}')
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid token')
+
+    token = auth_header[7:]
+    user = User.query(session, token=token)
+    if not user:
+        logger.error(f'Invalid token, auth_header:{auth_header}')
+        return error_response(-1, "Invalid token")
+
+    user_balance = UserBalance.query(session, user_id=user.id)
+    if not user_balance:
+        remaining_tokens = 0
+    else:
+        remaining_tokens = user_balance.total_recharge - user_balance.consumed_amount
+
+    user_info = {
+        'username': user.username,
+        'phone': user.phone,
+        'email': user.email,
+        'remaining_tokens': remaining_tokens,
+        'referral_code': user.referral_code
+    }
+
+    response_data = ErrorCode.success(user_info)
+    return jsonify(response_data)
