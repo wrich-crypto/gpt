@@ -19,7 +19,6 @@ def generate(channel, message, token, messageId, tokens_consumed):
         for chunk in stream_response.iter_content(chunk_size=1024):
             if chunk:
                 decoded_chunk = chunk.decode("utf-8")
-                print(decoded_chunk)
                 decoded_chunk_obj = DecodedChunk(decoded_chunk)
 
                 if decoded_chunk_obj.event == 'message':

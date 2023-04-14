@@ -1,10 +1,12 @@
+from gevent.pywsgi import WSGIServer
+from gevent import monkey
+monkey.patch_all()
 from init import *
 from flask import Flask, request
 from src.user.user_handlers import user_bp
 from src.admin.admin_handlers import admin_bp
 from src.chat.chat_handlers import chat_bp
 from flask_cors import CORS
-
 
 app = Flask(__name__)
 CORS(app)
@@ -28,4 +30,5 @@ def teardown_request(exception):
     g.pop('session', None)
 
 if __name__ == '__main__':
-    app.run(host=main_config.server, port=main_config.port)
+    WSGIServer((main_config.server, main_config.port), app).serve_forever()
+    # app.run(host=main_config.server, port=main_config.port)
