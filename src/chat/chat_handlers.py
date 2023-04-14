@@ -112,6 +112,7 @@ def handle_chat_textchat():
         remaining_balance = (user_balance.total_recharge - user_balance.consumed_amount) if user_balance else 0
         remaining_balance = remaining_balance if remaining_balance >= 0 else 0
         if remaining_balance <= 0:
+            logger.error('handle_chat_textchat Insufficient balance')
             return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "Insufficient balance")
 
         tokens_consumed = 500
@@ -120,6 +121,7 @@ def handle_chat_textchat():
         success, error = UserBalance.update(session, conditions={"user_id": user.id},
                                             updates={"consumed_amount": user_balance.consumed_amount + tokens_consumed})
         if not success:
+            logger.error('handle_chat_textchat UserBalance.update error:{error}')
             return error_response(ErrorCode.ERROR_INVALID_PARAMETER, error)
 
         headers = {
@@ -128,7 +130,7 @@ def handle_chat_textchat():
             "Cache-Control": "no-cache",
         }
         # return Response(generate(channel, message, token, messageId, tokens_consumed), headers=headers)
-        return Response(generate(message), headers=headers)
+        return Response(generate(message), content_type='text/event-stream')
     except Exception as e:
         print(e)
 
