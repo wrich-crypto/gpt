@@ -113,6 +113,7 @@ def handle_chat_textchat():
             "Content-Type": "text/event-stream",
             "Transfer-Encoding": "chunked",
             "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
         }
         return Response(generate(channel, message, token, messageId, tokens_consumed), headers=headers)
     except Exception as e:
