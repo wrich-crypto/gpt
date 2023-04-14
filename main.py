@@ -1,5 +1,3 @@
-from gevent import monkey
-monkey.patch_all()
 from init import *
 from flask import Flask, request
 from src.user.user_handlers import user_bp
