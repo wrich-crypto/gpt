@@ -4,6 +4,50 @@ from .chat_module import *
 from ..user.user_module import *
 import json
 
+
+def generate(channel, message, token, messageId, tokens_consumed):
+    try:
+        access_token = hot_config.get_next_api_key()
+        chat_api = ChatAPI(access_token)
+
+        channel_id = channel if channel and channel.strip() != "" else generate_uuid()
+        create_stream_response = chat_api.create_stream(message, channel_id)
+        stream_id = create_stream_response["data"]["streamId"]
+
+        stream_response = chat_api.get_stream(stream_id)
+        content = ''
+        for chunk in stream_response.iter_content(chunk_size=1024):
+            if chunk:
+                decoded_chunk = chunk.decode("utf-8")
+                print(decoded_chunk)
+                decoded_chunk_obj = DecodedChunk(decoded_chunk)
+
+                if decoded_chunk_obj.event == 'message':
+                    content = content + decoded_chunk_obj.data
+
+                yield decoded_chunk
+
+        new_session = session_factory()
+
+        user = User.query(new_session, token=token)
+
+        if not user:
+            logger.error(f'Invalid token, token:{token}')
+            return
+
+        if ChatChannel.exists(new_session, channel_id=channel_id, user_id=user.id, status=status_success) is False:
+            ChatChannel.upsert(new_session, {"channel_id": channel_id, "user_id": user.id},
+                               {"channel_id": channel_id, "user_id": user.id,
+                                "status": status_success, "title": message})
+
+        ChatMessage.create(new_session, user_id=user.id, channel_id=channel, message_id=messageId,
+                           question=message, answer=content, tokens_consumed=tokens_consumed)
+        new_session.close()
+
+    except Exception as e:
+        logger.error(e)
+        yield json.dumps(error_response(ErrorCode.ERROR_INTERNAL_SERVER, 'Internal server error'))
+
 @chat_bp.route('/textchat', methods=['POST'])
 def handle_chat_textchat():
     session = g.session
@@ -37,50 +81,6 @@ def handle_chat_textchat():
     if remaining_balance <= 0:
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "Insufficient balance")
 
-    access_token = hot_config.get_next_api_key()
-    chat_api = ChatAPI(access_token)
-
-    def generate():
-        try:
-            channel_id = channel if channel and channel.strip() != "" else generate_uuid()
-            create_stream_response = chat_api.create_stream(message, channel_id)
-            stream_id = create_stream_response["data"]["streamId"]
-
-            stream_response = chat_api.get_stream(stream_id)
-            content = ''
-            for chunk in stream_response.iter_content(chunk_size=1024):
-                if chunk:
-                    decoded_chunk = chunk.decode("utf-8")
-                    print(decoded_chunk)
-                    decoded_chunk_obj = DecodedChunk(decoded_chunk)
-
-                    if decoded_chunk_obj.event == 'message':
-                        content = content + decoded_chunk_obj.data
-
-                    yield f"data: {decoded_chunk_obj.data}\n\n"
-                    # yield decoded_chunk
-
-            new_session = session_factory()
-
-            user = User.query(new_session, token=token)
-
-            if not user:
-                logger.error(f'Invalid token, token:{token}')
-                return
-
-            if ChatChannel.exists(new_session, channel_id=channel_id, user_id=user.id, status=status_success) is False:
-                ChatChannel.upsert(new_session, {"channel_id": channel_id, "user_id": user.id},
-                                        {"channel_id": channel_id, "user_id": user.id,
-                                         "status": status_success, "title": message})
-
-            ChatMessage.create(new_session, user_id=user.id, channel_id=channel, message_id=messageId,
-                               question=message, answer=content, tokens_consumed=tokens_consumed)
-            new_session.close()
-
-        except Exception as e:
-            logger.error(e)
-            yield json.dumps(error_response(ErrorCode.ERROR_INTERNAL_SERVER, 'Internal server error'))
-
     tokens_consumed = 500
     tokens_consumed = Decimal(tokens_consumed)
 
@@ -94,7 +94,7 @@ def handle_chat_textchat():
         "Transfer-Encoding": "chunked",
         "Cache-Control": "no-cache",
     }
-    return Response(generate(), headers=headers)
+    return Response(generate(channel, message, token, messageId, tokens_consumed), headers=headers)
 
 @chat_bp.route('/history/<string:channel_id>', methods=['GET'])
 def get_history(channel_id):
