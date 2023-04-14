@@ -28,21 +28,7 @@ def create_stream_with_retry(message, channel=None, max_attempts=None):
 
     raise ValueError("Failed to create stream after maximum attempts.")
 
-def generate(message):
-    stream_response = create_stream_with_retry(message, max_attempts=3)
-
-    content = ''
-    for chunk in stream_response.iter_content(chunk_size=1024):
-        if chunk:
-            decoded_chunk = chunk.decode("utf-8")
-            decoded_chunk_obj = DecodedChunk(decoded_chunk)
-
-            if decoded_chunk_obj.event == 'message':
-                content = content + decoded_chunk_obj.data
-            print(content)
-            yield decoded_chunk
-
-def generate_v2(channel, message, token, messageId, tokens_consumed):
+def generate(channel, message, token, messageId, tokens_consumed):
     try:
         channel = channel
         stream_response = create_stream_with_retry(message, channel, 3)
@@ -129,8 +115,7 @@ def handle_chat_textchat():
             "Transfer-Encoding": "chunked",
             "Cache-Control": "no-cache",
         }
-        # return Response(generate(channel, message, token, messageId, tokens_consumed), headers=headers)
-        return Response(generate(message), content_type='text/event-stream')
+        return Response(generate(channel, message, token, messageId, tokens_consumed), headers=headers)
     except Exception as e:
         print(e)
 
