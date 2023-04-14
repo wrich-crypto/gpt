@@ -1,3 +1,5 @@
+from gevent import monkey
+monkey.patch_all()
 from init import *
 from flask import Flask, request
 from src.user.user_handlers import user_bp
@@ -5,8 +7,6 @@ from src.admin.admin_handlers import admin_bp
 from src.chat.chat_handlers import chat_bp
 from flask_cors import CORS
 
-from gevent import monkey
-monkey.patch_all()
 
 app = Flask(__name__)
 CORS(app)
