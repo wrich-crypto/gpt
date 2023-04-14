@@ -68,51 +68,54 @@ def generate(channel, message, token, messageId, tokens_consumed):
 
 @chat_bp.route('/textchat', methods=['POST'])
 def handle_chat_textchat():
-    session = g.session
-    auth_header = request.headers.get('Authorization')
-    if not auth_header or not auth_header.startswith('Bearer '):
-        logger.error(f'Invalid token, auth_header:{auth_header}')
-        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid token')
+    try:
+        session = g.session
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            logger.error(f'Invalid token, auth_header:{auth_header}')
+            return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid token')
 
-    token = auth_header[7:]
+        token = auth_header[7:]
 
-    channel = request.form.get('channel')
-    message = request.form.get('message')
-    timestamp = request.form.get('timestamp')
-    messageId = request.form.get('messageId')
-    extras = request.form.get('extras')
-    logger.info(f'channel:{channel}, message:{message}, timestamp:{timestamp}, messageId:{messageId}, extras:{extras}')
+        channel = request.form.get('channel')
+        message = request.form.get('message')
+        timestamp = request.form.get('timestamp')
+        messageId = request.form.get('messageId')
+        extras = request.form.get('extras')
+        logger.info(f'channel:{channel}, message:{message}, timestamp:{timestamp}, messageId:{messageId}, extras:{extras}')
 
-    if message == '':
-        response_data = ErrorCode.success({'content': ''})
-        return jsonify(response_data)
+        if message == '':
+            response_data = ErrorCode.success({'content': ''})
+            return jsonify(response_data)
 
-    user = User.query(session, token=token)
+        user = User.query(session, token=token)
 
-    if not user:
-        logger.error(f'Invalid token, auth_header:{auth_header}')
-        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid token')
+        if not user:
+            logger.error(f'Invalid token, auth_header:{auth_header}')
+            return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid token')
 
-    user_balance = UserBalance.query(session, user_id=user.id)
-    remaining_balance = (user_balance.total_recharge - user_balance.consumed_amount) if user_balance else 0
-    remaining_balance = remaining_balance if remaining_balance >= 0 else 0
-    if remaining_balance <= 0:
-        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "Insufficient balance")
+        user_balance = UserBalance.query(session, user_id=user.id)
+        remaining_balance = (user_balance.total_recharge - user_balance.consumed_amount) if user_balance else 0
+        remaining_balance = remaining_balance if remaining_balance >= 0 else 0
+        if remaining_balance <= 0:
+            return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "Insufficient balance")
 
-    tokens_consumed = 500
-    tokens_consumed = Decimal(tokens_consumed)
+        tokens_consumed = 500
+        tokens_consumed = Decimal(tokens_consumed)
 
-    success, error = UserBalance.update(session, conditions={"user_id": user.id},
-                                        updates={"consumed_amount": user_balance.consumed_amount + tokens_consumed})
-    if not success:
-        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, error)
+        success, error = UserBalance.update(session, conditions={"user_id": user.id},
+                                            updates={"consumed_amount": user_balance.consumed_amount + tokens_consumed})
+        if not success:
+            return error_response(ErrorCode.ERROR_INVALID_PARAMETER, error)
 
-    headers = {
-        "Content-Type": "text/event-stream",
-        "Transfer-Encoding": "chunked",
-        "Cache-Control": "no-cache",
-    }
-    return Response(generate(channel, message, token, messageId, tokens_consumed), headers=headers)
+        headers = {
+            "Content-Type": "text/event-stream",
+            "Transfer-Encoding": "chunked",
+            "Cache-Control": "no-cache",
+        }
+        return Response(generate(channel, message, token, messageId, tokens_consumed), headers=headers)
+    except Exception as e:
+        print(e)
 
 @chat_bp.route('/history/<string:channel_id>', methods=['GET'])
 def get_history(channel_id):
