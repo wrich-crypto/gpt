@@ -55,6 +55,7 @@ def handle_chat_textchat():
 
                     if decoded_chunk_obj.event == 'message':
                         content = content + decoded_chunk_obj.data
+                        print(content)
                     yield decoded_chunk
 
             new_session = session_factory()
