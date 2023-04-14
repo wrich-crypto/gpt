@@ -48,7 +48,7 @@ def handle_chat_textchat():
 
             stream_response = chat_api.get_stream(stream_id)
             content = ''
-            for chunk in stream_response.iter_content(chunk_size=None):
+            for chunk in stream_response.iter_content(chunk_size=1024):
                 if chunk:
                     decoded_chunk = chunk.decode("utf-8")
                     decoded_chunk_obj = DecodedChunk(decoded_chunk)
