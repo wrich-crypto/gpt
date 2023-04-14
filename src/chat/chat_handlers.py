@@ -88,8 +88,8 @@ def handle_chat_textchat():
 
     headers = {
         "Content-Type": "text/event-stream",
-        # "Transfer-Encoding": "chunked",
-        # "Cache-Control": "no-cache",
+        "Transfer-Encoding": "chunked",
+        "Cache-Control": "no-cache",
     }
     return Response(generate(), headers=headers)
 
