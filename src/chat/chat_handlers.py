@@ -8,10 +8,12 @@ import json
 def generate(channel, message, token, messageId, tokens_consumed):
     try:
         access_token = hot_config.get_next_api_key()
+        print(access_token)
         chat_api = ChatAPI(access_token)
 
         channel_id = channel if channel and channel.strip() != "" else generate_uuid()
         create_stream_response = chat_api.create_stream(message, channel_id)
+        print(create_stream_response)
         stream_id = create_stream_response["data"]["streamId"]
 
         stream_response = chat_api.get_stream(stream_id)
@@ -148,7 +150,7 @@ def get_channels():
         channels = ChatChannel.get_channels_by_user(session, user_id=user.id, status=status_success)
         channels_data = []
         for channel in channels:
-            channels_data.append({"channel_id": channel.channel_id, "title": channel.title})
+            channels_data.append({"id": channel.id,"channel_id": channel.channel_id, "title": channel.title})
 
         response_data = ErrorCode.success({'channels': channels_data})
         return jsonify(response_data)
