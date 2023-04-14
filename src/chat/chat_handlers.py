@@ -5,18 +5,33 @@ from ..user.user_module import *
 import json
 
 
-def generate(channel, message, token, messageId, tokens_consumed):
-    try:
+def create_stream_with_retry(message, channel=None, max_attempts=None):
+    if max_attempts is None:
+        max_attempts = len(hot_config.token_cycle)
+
+    for _ in range(max_attempts):
         access_token = hot_config.get_next_api_key()
-        print(access_token)
+
+        if access_token is None or access_token.strip() == '':
+            break
+
         chat_api = ChatAPI(access_token)
 
         channel_id = channel if channel and channel.strip() != "" else generate_uuid()
         create_stream_response = chat_api.create_stream(message, channel_id)
-        print(create_stream_response)
-        stream_id = create_stream_response["data"]["streamId"]
 
-        stream_response = chat_api.get_stream(stream_id)
+        if create_stream_response and str(create_stream_response["code"]) == '0':
+            stream_id = create_stream_response["data"]["streamId"]
+            return chat_api.get_stream(stream_id)
+        else:
+            hot_config.remove_api_key(access_token)
+
+    raise ValueError("Failed to create stream after maximum attempts.")
+
+def generate(channel, message, token, messageId, tokens_consumed):
+    try:
+        stream_response = create_stream_with_retry(message, channel, 3)
+
         content = ''
         for chunk in stream_response.iter_content(chunk_size=1024):
             if chunk:
@@ -47,7 +62,8 @@ def generate(channel, message, token, messageId, tokens_consumed):
 
     except Exception as e:
         logger.error(e)
-        yield json.dumps(error_response(ErrorCode.ERROR_INTERNAL_SERVER, 'Internal server error'))
+        yield f"data: {json.dumps(error_response(ErrorCode.ERROR_INTERNAL_SERVER, 'Internal server error'))}\n\n"
+        # yield json.dumps(error_response(ErrorCode.ERROR_INTERNAL_SERVER, 'Internal server error'))
 
 @chat_bp.route('/textchat', methods=['POST'])
 def handle_chat_textchat():
@@ -95,7 +111,7 @@ def handle_chat_textchat():
         "Transfer-Encoding": "chunked",
         "Cache-Control": "no-cache",
     }
-    return Response(generate(channel, message, token, messageId, tokens_consumed), content_type='text/event-stream', headers=headers)
+    return Response(generate(channel, message, token, messageId, tokens_consumed), headers=headers)
 
 @chat_bp.route('/history/<string:channel_id>', methods=['GET'])
 def get_history(channel_id):
