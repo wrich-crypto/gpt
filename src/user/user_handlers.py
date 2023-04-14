@@ -101,7 +101,7 @@ def handle_user_invite():
 
     if referral_code is None or referral_code == '':
         logger.error(f'referral_code:{referral_code}')
-        return error_response(ErrorCode.ERROR_INVALID_PARAMETER)
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'referral code empty')
 
     user = User.query(session, token=token)
     referral_user = User.query(session, referral_code=referral_code)
