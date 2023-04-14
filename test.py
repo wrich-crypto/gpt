@@ -1,14 +1,17 @@
 
 from gevent import monkey
 from config.hot_config import *
+from flask_sse import sse
 
 # Patch the standard library with gevent
 monkey.patch_all()
 from flask import Flask, Response
 import requests
-app = Flask(__name__)
-
 from package.chatgpt.uchatgpt import *
+
+app = Flask(__name__)
+# app.config["REDIS_URL"] = "redis://"
+# app.register_blueprint(sse, url_prefix='/stream')
 
 def test_chat_api(access_token):
     chat_api = ChatAPI(access_token)
