@@ -68,7 +68,8 @@ def handle_chat_textchat():
 
             if ChatChannel.exists(new_session, channel_id=channel_id, user_id=user.id, status=status_success) is False:
                 ChatChannel.upsert(new_session, {"channel_id": channel_id, "user_id": user.id},
-                                        {"channel_id": channel_id, "user_id": user.id, "status": status_success})
+                                        {"channel_id": channel_id, "user_id": user.id,
+                                         "status": status_success, "title": message})
 
             ChatMessage.create(new_session, user_id=user.id, channel_id=channel, message_id=messageId,
                                question=message, answer=content, tokens_consumed=tokens_consumed)
@@ -146,7 +147,7 @@ def get_channels():
         channels = ChatChannel.get_channels_by_user(session, user_id=user.id, status=status_success)
         channels_data = []
         for channel in channels:
-            channels_data.append({"channel_id": channel.channel_id})
+            channels_data.append({"channel_id": channel.channel_id, "title": channel.title})
 
         response_data = ErrorCode.success({'channels': channels_data})
         return jsonify(response_data)
