@@ -58,21 +58,21 @@ def handle_chat_textchat():
                         print(content)
                     yield decoded_chunk
 
-            new_session = session_factory()
-
-            user = User.query(new_session, token=token)
-
-            if not user:
-                logger.error(f'Invalid token, token:{token}')
-                return
-
-            if ChatChannel.exists(new_session, channel_id=channel_id, user_id=user.id, status=status_success) is False:
-                ChatChannel.upsert(new_session, {"channel_id": channel_id, "user_id": user.id},
-                                        {"channel_id": channel_id, "user_id": user.id, "status": status_success})
-
-            ChatMessage.create(new_session, user_id=user.id, channel_id=channel, message_id=messageId,
-                               question=message, answer=content, tokens_consumed=tokens_consumed)
-            new_session.close()
+            # new_session = session_factory()
+            #
+            # user = User.query(new_session, token=token)
+            #
+            # if not user:
+            #     logger.error(f'Invalid token, token:{token}')
+            #     return
+            #
+            # if ChatChannel.exists(new_session, channel_id=channel_id, user_id=user.id, status=status_success) is False:
+            #     ChatChannel.upsert(new_session, {"channel_id": channel_id, "user_id": user.id},
+            #                             {"channel_id": channel_id, "user_id": user.id, "status": status_success})
+            #
+            # ChatMessage.create(new_session, user_id=user.id, channel_id=channel, message_id=messageId,
+            #                    question=message, answer=content, tokens_consumed=tokens_consumed)
+            # new_session.close()
 
         except Exception as e:
             logger.error(e)
