@@ -41,12 +41,12 @@ def get_request_data():
         elif content_type == 'multipart/form-data':
             data = request.form
         else:
-            data = "Unsupported content type"
+            data = request.form
         return data
 
     except Exception as e:
         logger.error(f'error:{e}')
-        return "Unsupported content type"
+        return request.form
 
 def config_init():
     pass
