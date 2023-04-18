@@ -136,6 +136,10 @@ def handle_change_password():
     hash_password = hash_token(password)
     new_password = g.data.get('new_password')
 
+    if password is None or password == '' or new_password is None or new_password == '':
+        logger.error(f'user not exist, token:{token}')
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "Invalid parameter")
+
     user = User.query(session, token=token)
     if not user:
         logger.error(f'user not exist, token:{token}')
@@ -162,6 +166,11 @@ def handle_get_phone_verification_code():
     session = g.session
     username = g.data.get('username')
     phone = g.data.get('phone')
+
+    if phone is None or phone == '':
+        logger.error(f'handle_get_phone_verification_code, '
+                     f'sms_client.send_message, username:{username}, phone:{phone}')
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'phone error')
 
     if validate_phone_number(phone) is False:
         logger.error(f'handle_get_phone_verification_code, '
@@ -195,6 +204,11 @@ def handle_get_email_verification_code():
     session = g.session
     username = g.data.get('username')
     email = g.data.get('email')
+
+    if email is None or email == '':
+        logger.error(f'handle_get_phone_verification_code, '
+                     f'sms_client.send_message, username:{username}, email:{email}')
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'email error')
 
     code = generate_code()
     if validate_email(email) is False:
