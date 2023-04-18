@@ -24,8 +24,21 @@ app.register_blueprint(chat_bp)
 
 @app.before_request
 def before_request():
+    content_type = request.headers.get('Content-Type')
+
+    if content_type == 'application/json':
+        data = request.get_json()
+    elif content_type == 'application/x-www-form-urlencoded':
+        data = request.form.to_dict()
+    elif content_type == 'multipart/form-data':
+        data = request.form.to_dict()
+        # 如果需要处理上传的文件，可以使用 request.files
+    else:
+        # 对于其他未知的 Content-Type，您可以自行处理，或者返回一个错误
+        return "Unsupported content type", 400
+
     value_data = request.values
-    logger_common.info(f'Received request: {request.method} {request.path}, values: {value_data}')
+    logger_common.info(f'Received request: {request.method} {request.path}, values: {value_data} data:{data}')
     g.session = session_factory()
 
 @app.teardown_request
