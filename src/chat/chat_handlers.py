@@ -83,7 +83,7 @@ def handle_chat_textchat():
 
         token = auth_header[7:]
 
-        print(f'get_request request:{request}')
+        print(f'get_request request:{request} json:{request.get_json()}, form:{request.form}')
         if request.is_json:
             data = request.get_json()
         else:
