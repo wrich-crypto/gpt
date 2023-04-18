@@ -19,6 +19,7 @@ def create_stream_with_retry(message, channel=None, max_attempts=None):
 
         channel_id = channel if channel and channel.strip() != "" else generate_uuid()
         create_stream_response = chat_api.create_stream(message, channel_id)
+        print(f'create_stream_response:{create_stream_response}')
 
         if create_stream_response and str(create_stream_response["code"]) == '0':
             logger.info(f'chat gpt response: {create_stream_response}')
