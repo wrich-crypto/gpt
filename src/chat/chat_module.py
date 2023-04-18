@@ -28,9 +28,9 @@ class ChatChannel(BaseModel):
         return query.all()
 
     @classmethod
-    def delete_channel(cls, session, channel_id):
+    def delete_channel(cls, session, channel_id, user_id):
         try:
-            session.query(cls).filter_by(id=channel_id).update({"status": 2})
+            session.query(cls).filter_by(id=channel_id, user_id=user_id).update({"status": 2})
             session.commit()
             return True, None
         except SQLAlchemyError as e:

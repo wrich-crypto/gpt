@@ -83,11 +83,16 @@ def handle_chat_textchat():
 
         token = auth_header[7:]
 
-        channel = request.form.get('channel')
-        message = request.form.get('message')
-        timestamp = request.form.get('timestamp')
-        messageId = request.form.get('messageId')
-        extras = request.form.get('extras')
+        if request.is_json:
+            data = request.get_json()
+        else:
+            data = request.form
+
+        channel = data.get('channel')
+        message = data.get('message')
+        timestamp = data.get('timestamp')
+        messageId = data.get('messageId')
+        extras = data.get('extras')
         logger.info(f'channel:{channel}, message:{message}, timestamp:{timestamp}, messageId:{messageId}, extras:{extras}')
 
         if message is None or message == '':
@@ -207,7 +212,7 @@ def delete_channel(channel_id):
             logger.error(f'Invalid token, auth_header:{auth_header}')
             return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "Invalid token")
 
-        success, error = ChatChannel.delete_channel(session, channel_id)
+        success, error = ChatChannel.delete_channel(session, channel_id, user.id)
         if success:
             response_data = ErrorCode.success({"message": "Channel deleted successfully"})
             return jsonify(response_data)
