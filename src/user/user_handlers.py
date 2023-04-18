@@ -10,6 +10,9 @@ def handle_user_login():
     token = generate_token(username, hash_password)
     logger.info(f'login username:{username}')
 
+    if username is None or username == '' or password is None or password == '':
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'invalid parameter')
+
     user = User.query(session, username=username)
 
     if user is None:
@@ -41,6 +44,9 @@ def handle_user_registration():
 
     logger.info(f'register email:{email}, phone:{phone}, '
                 f'verification_code:{verification_code},password:{password},hash_password:{hash_password}')
+
+    if username is None or username == '' or password is None or password == '':
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'invalid parameter')
 
     success, err = register_verification(verification_type, verification_code, email, phone)
     if success is False:
@@ -278,12 +284,17 @@ def handle_payment():
 
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
-        logger.error(f'Invalid token, auth_header:{auth_header}')
-        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid token')
+        logger.error(f'Invalid auth_header, amount:{auth_header}')
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid auth_header')
 
     token = auth_header[7:]
 
-    amount = int(request.form.get('amount'))
+    amount = request.form.get('amount')
+    if amount is None or amount == '':
+        logger.error(f'Invalid amount, amount:{amount}')
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid amount')
+
+    amount = int(amount)
 
     user = User.query(session, token=token)
     if not user:
