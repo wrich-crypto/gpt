@@ -58,11 +58,10 @@ def generate(channel, message, token, messageId, tokens_consumed):
             return
 
         if ChatChannel.exists(new_session, channel_id=channel_id, user_id=user.id, status=status_success) is False:
-            new_channel = ChatChannel.create(new_session, channel_id=channel_id, user_id=user.id, status=status_success, title=message)
-            current_channel_index_id = new_channel.id
-        else:
-            new_channel = ChatChannel.query(new_session, channel_id=channel_id, user_id=user.id, status=status_success)
-            current_channel_index_id = new_channel.id
+            ChatChannel.create(new_session, channel_id=channel_id, user_id=user.id, status=status_success, title=message)
+
+        new_channel = ChatChannel.query(new_session, channel_id=channel_id, user_id=user.id, status=status_success)
+        current_channel_index_id = new_channel.id
 
         ChatMessage.create(new_session, user_id=user.id, channel_id=current_channel_index_id, message_id=messageId,
                            question=message, answer=content, tokens_consumed=tokens_consumed)
