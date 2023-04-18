@@ -22,28 +22,10 @@ app.register_blueprint(user_bp)
 app.register_blueprint(admin_bp)
 app.register_blueprint(chat_bp)
 
-def get_request_data():
-    try:
-        content_type = request.headers.get('Content-Type')
-
-        if content_type == 'application/json':
-            data = request.get_json()
-        elif content_type == 'application/x-www-form-urlencoded':
-            data = request.form.to_dict()
-        elif content_type == 'multipart/form-data':
-            data = request.form.to_dict()
-        else:
-            data = "Unsupported content type"
-        return data
-
-    except Exception as e:
-        logger.error(f'error:{e}')
-        return "Unsupported content type"
-
 @app.before_request
 def before_request():
-    data = get_request_data()
-    logger_common.info(f'Received request: {request.method} {request.path}, data:{data}')
+    g.data = get_request_data()
+    logger_common.info(f'Received request: {request.method} {request.path}, data:{g.data}')
     g.session = session_factory()
 
 @app.teardown_request

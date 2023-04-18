@@ -16,6 +16,7 @@ from sqlalchemy.orm import sessionmaker  # 导入 sessionmaker
 import random
 import string
 from decimal import Decimal
+from flask import request
 from package.sms_notify.sms import *
 from package.email_notify.email_client import *
 from package.chatgpt.uchatgpt import *
@@ -28,6 +29,24 @@ session_factory = scoped_session(sessionmaker(bind=engine))
 baseDb = BaseModel()
 sms_client = SMSClientWrapper(main_config.access_key_id, main_config.access_key_secret)
 email_client = EmailClient(main_config.access_key_id, main_config.access_key_secret)
+
+def get_request_data():
+    try:
+        content_type = request.headers.get('Content-Type')
+
+        if content_type == 'application/json':
+            data = request.json
+        elif content_type == 'application/x-www-form-urlencoded':
+            data = request.form
+        elif content_type == 'multipart/form-data':
+            data = request.form
+        else:
+            data = "Unsupported content type"
+        return data
+
+    except Exception as e:
+        logger.error(f'error:{e}')
+        return "Unsupported content type"
 
 def config_init():
     pass

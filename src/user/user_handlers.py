@@ -4,8 +4,8 @@ from .user_module import *
 @user_bp.route('/login', methods=['POST'])
 def handle_user_login():
     session = g.session
-    username = request.form.get('username')
-    password = request.form.get('password')
+    username = g.data.get('username')
+    password = g.data.get('password')
     hash_password = hash_token(password)
     token = generate_token(username, hash_password)
     logger.info(f'login username:{username}')
@@ -30,15 +30,15 @@ def handle_user_login():
 @user_bp.route('/register', methods=['POST'])
 def handle_user_registration():
     session = g.session
-    username = request.form.get('username')
-    password = request.form.get('password')
+    username = g.data.get('username')
+    password = g.data.get('password')
 
-    verification_type = request.form.get('verification_type')
-    verification_code = request.form.get('verification_code')
+    verification_type = g.data.get('verification_type')
+    verification_code = g.data.get('verification_code')
 
-    phone = request.form.get('phone')
-    email = request.form.get('email')
-    referral_code = request.form.get('referral_code')
+    phone = g.data.get('phone')
+    email = g.data.get('email')
+    referral_code = g.data.get('referral_code')
     hash_password = hash_token(password)
     token = generate_token(username, hash_password)
 
@@ -102,7 +102,7 @@ def handle_user_invite():
 
     token = auth_header[7:]
 
-    referral_code = request.form.get('referral_code')
+    referral_code = g.data.get('referral_code')
     logger.info(f'token:{token}, referral_code:{referral_code}')
 
     if referral_code is None or referral_code == '':
@@ -132,9 +132,9 @@ def handle_change_password():
 
     token = auth_header[7:]
 
-    password = request.form.get('password')
+    password = g.data.get('password')
     hash_password = hash_token(password)
-    new_password = request.form.get('new_password')
+    new_password = g.data.get('new_password')
 
     user = User.query(session, token=token)
     if not user:
@@ -160,8 +160,8 @@ def handle_change_password():
 @user_bp.route('/get_phone_verification_code', methods=['POST'])
 def handle_get_phone_verification_code():
     session = g.session
-    username = request.form.get('username')
-    phone = request.form.get('phone')
+    username = g.data.get('username')
+    phone = g.data.get('phone')
 
     if validate_phone_number(phone) is False:
         logger.error(f'handle_get_phone_verification_code, '
@@ -193,8 +193,8 @@ def handle_get_phone_verification_code():
 @user_bp.route('/get_email_verification_code', methods=['POST'])
 def handle_get_email_verification_code():
     session = g.session
-    username = request.form.get('username')
-    email = request.form.get('email')
+    username = g.data.get('username')
+    email = g.data.get('email')
 
     code = generate_code()
     if validate_email(email) is False:
@@ -289,7 +289,7 @@ def handle_payment():
 
     token = auth_header[7:]
 
-    amount = request.form.get('amount')
+    amount = g.data.get('amount')
     if amount is None or amount == '':
         logger.error(f'Invalid amount, amount:{amount}')
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid amount')

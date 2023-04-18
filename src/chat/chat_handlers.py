@@ -82,12 +82,11 @@ def handle_chat_textchat():
             return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid token')
 
         token = auth_header[7:]
-        data = request.values
-        channel = data.get('channel')
-        message = data.get('message')
-        timestamp = data.get('timestamp')
-        messageId = data.get('messageId')
-        extras = data.get('extras')
+        channel = g.data.get('channel')
+        message = g.data.get('message')
+        timestamp = g.data.get('timestamp')
+        messageId = g.data.get('messageId')
+        extras = g.data.get('extras')
         logger.info(f'channel:{channel}, message:{message}, timestamp:{timestamp}, messageId:{messageId}, extras:{extras}')
 
         if message is None or message == '':
