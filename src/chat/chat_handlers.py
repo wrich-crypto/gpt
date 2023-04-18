@@ -65,7 +65,7 @@ def generate(channel, message, token, messageId, tokens_consumed):
         new_session.close()
 
     except Exception as e:
-        logger.error(e)
+        logger.error(f'generate error {e}')
         yield f"data: {json.dumps(error_response(ErrorCode.ERROR_INTERNAL_SERVER, 'Internal server error'))}\n\n"
         # yield json.dumps(error_response(ErrorCode.ERROR_INTERNAL_SERVER, 'Internal server error'))
 
