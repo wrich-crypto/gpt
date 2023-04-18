@@ -130,6 +130,7 @@ def handle_chat_textchat():
         return Response(generate(channel, message, token, messageId, tokens_consumed), headers=headers)
     except Exception as e:
         logger.error(f"handle_chat_textchat error:{e}")
+        return error_response(ErrorCode.ERROR_INTERNAL_SERVER, "server error")
 
 @chat_bp.route('/history/<string:channel_id>', methods=['GET'])
 def get_history(channel_id):
