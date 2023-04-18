@@ -25,7 +25,7 @@ def create_stream_with_retry(message, channel=None, max_attempts=None):
         if create_stream_response and str(create_stream_response["code"]) == '0':
             logger.info(f'chat gpt response: {create_stream_response}')
             stream_id = create_stream_response["data"]["streamId"]
-            return chat_api.get_stream(stream_id)
+            return chat_api.get_stream(stream_id), channel_id
         else:
             logger.error(f'chat gpt error: {create_stream_response}')
             hot_config.remove_api_key(access_token)
@@ -35,7 +35,7 @@ def create_stream_with_retry(message, channel=None, max_attempts=None):
 def generate(channel, message, token, messageId, tokens_consumed):
     try:
         channel = channel
-        stream_response = create_stream_with_retry(message, channel, 3)
+        stream_response, channel_id = create_stream_with_retry(message, channel, 3)
 
         content = ''
         for chunk in stream_response.iter_content(chunk_size=1024):
@@ -55,9 +55,9 @@ def generate(channel, message, token, messageId, tokens_consumed):
             logger.error(f'Invalid token, token:{token}')
             return
 
-        if ChatChannel.exists(new_session, channel_id=channel, user_id=user.id, status=status_success) is False:
-            ChatChannel.upsert(new_session, {"channel_id": channel, "user_id": user.id},
-                               {"channel_id": channel, "user_id": user.id,
+        if ChatChannel.exists(new_session, channel_id=channel_id, user_id=user.id, status=status_success) is False:
+            ChatChannel.upsert(new_session, {"channel_id": channel_id, "user_id": user.id},
+                               {"channel_id": channel_id, "user_id": user.id,
                                 "status": status_success, "title": message})
 
         ChatMessage.create(new_session, user_id=user.id, channel_id=channel, message_id=messageId,

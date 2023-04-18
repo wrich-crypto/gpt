@@ -1,7 +1,7 @@
 from uchatgpt import *
 
 def test_chat_api():
-    access_token = ""
+    access_token = "n5CXbRlcdCVgEVmNym7k0hLnWZQY9SaiBDk3ChGy5T4"
     chat_api = ChatAPI(access_token)
 
     # # Test ask() method
