@@ -3,7 +3,7 @@ from package.chatgpt.uchatgpt import *
 from .chat_module import *
 from ..user.user_module import *
 import json
-
+from flask import Flask, request, Response, stream_with_context
 
 def create_stream_with_retry(message, channel=None, max_attempts=None):
     if max_attempts is None:
@@ -34,6 +34,7 @@ def create_stream_with_retry(message, channel=None, max_attempts=None):
 
     raise ValueError("Failed to create stream after maximum attempts.")
 
+@stream_with_context
 def generate(channel, message, token, messageId, tokens_consumed):
     try:
         channel = channel
