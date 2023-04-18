@@ -11,6 +11,7 @@ def create_stream_with_retry(message, channel=None, max_attempts=None):
 
     for _ in range(max_attempts):
         access_token = hot_config.get_next_api_key()
+        print(access_token)
 
         if access_token is None or access_token.strip() == '':
             break
