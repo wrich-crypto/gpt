@@ -24,8 +24,8 @@ app.register_blueprint(chat_bp)
 
 @app.before_request
 def before_request():
-    form_data = request.form
-    logger_common.info(f'Received request: {request.method} {request.path}, form_data: {form_data}')
+    value_data = request.values
+    logger_common.info(f'Received request: {request.method} {request.path}, values: {value_data}')
     g.session = session_factory()
 
 @app.teardown_request
