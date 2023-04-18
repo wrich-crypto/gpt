@@ -82,7 +82,7 @@ def handle_chat_textchat():
             return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid token')
 
         token = auth_header[7:]
-        data = request.form
+        data = request.values
         channel = data.get('channel')
         message = data.get('message')
         timestamp = data.get('timestamp')
