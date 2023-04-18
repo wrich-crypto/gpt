@@ -90,7 +90,7 @@ def handle_chat_textchat():
         extras = request.form.get('extras')
         logger.info(f'channel:{channel}, message:{message}, timestamp:{timestamp}, messageId:{messageId}, extras:{extras}')
 
-        if message == '':
+        if message is None or message == '':
             response_data = ErrorCode.success({'content': ''})
             return jsonify(response_data)
 
@@ -128,6 +128,10 @@ def handle_chat_textchat():
 
 @chat_bp.route('/history/<string:channel_id>', methods=['GET'])
 def get_history(channel_id):
+    if int(channel_id) <= 0:
+        logger.error(f'Invalid channel_id, channel_id:{channel_id}')
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid channel_id')
+
     session = g.session
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
