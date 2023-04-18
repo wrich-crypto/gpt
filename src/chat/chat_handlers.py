@@ -21,9 +21,11 @@ def create_stream_with_retry(message, channel=None, max_attempts=None):
         create_stream_response = chat_api.create_stream(message, channel_id)
 
         if create_stream_response and str(create_stream_response["code"]) == '0':
+            logger.info(f'chat gpt response: {create_stream_response}')
             stream_id = create_stream_response["data"]["streamId"]
             return chat_api.get_stream(stream_id)
         else:
+            logger.error(f'chat gpt error: {create_stream_response}')
             hot_config.remove_api_key(access_token)
 
     raise ValueError("Failed to create stream after maximum attempts.")
