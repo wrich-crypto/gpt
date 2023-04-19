@@ -22,7 +22,7 @@ def create_stream_with_retry(message, channel=None, max_attempts=3):
         if create_stream_response and str(create_stream_response["code"]) == '0':
             logger.info(f'chat gpt response: {create_stream_response}')
             stream_id = create_stream_response["data"]["streamId"]
-            return chat_api.get_stream(stream_id), channel_id
+            return stream_id, channel_id
         elif str(create_stream_response["code"]) == '1':
             logger.error(f'chat gpt error: {create_stream_response}')
             hot_config.remove_api_key(access_token)
@@ -82,8 +82,7 @@ def create_stream():
         extras = data.get('extras')
 
         # 创建 stream
-        stream_response, channel_uuid = create_stream_with_retry(message, channel_uuid)
-        stream_id = stream_response["data"]["streamId"]
+        stream_id, channel_uuid = create_stream_with_retry(message, channel_uuid)
 
         user = User.query(new_session, token=token)
 
