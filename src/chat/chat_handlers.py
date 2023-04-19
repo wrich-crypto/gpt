@@ -50,8 +50,8 @@ def generate(stream_id):
                 decoded_chunk_obj = DecodedChunk(decoded_chunk)
 
                 if decoded_chunk_obj.event == 'message':
-                    content = decoded_chunk_obj.data
-                    logger.info(content)
+                    content = content + decoded_chunk_obj.data
+                    # logger.info(content)
                     yield decoded_chunk
 
         new_session = session_factory()
