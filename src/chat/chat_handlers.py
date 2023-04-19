@@ -55,9 +55,9 @@ def generate(stream_id):
                     yield decoded_chunk
 
         new_session = session_factory()
-        chat_message = ChatMessage.query(new_session, message_id=stream_id)
+        chat_message = ChatMessage.query(new_session, stream_id=stream_id)
         if chat_message:
-            ChatMessage.update(new_session, conditions={"message_id": stream_id}, updates={"answer": content})
+            ChatMessage.update(new_session, conditions={"stream_id": stream_id}, updates={"answer": content})
         new_session.close()
 
     except Exception as e:
