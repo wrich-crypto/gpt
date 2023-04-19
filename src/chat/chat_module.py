@@ -4,8 +4,9 @@ class ChatMessage(BaseModel):
     __tablename__ = 'chat_messages'
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, nullable=False)
-    channel_id = Column(Integer, nullable=False)
-    message_id = Column(Integer, nullable=False)
+    channel_id = Column(String(100), nullable=False)
+    message_id = Column(String(100), nullable=False)
+    stream_id = Column(String(100), nullable=False)
     question = Column(Text, nullable=False)
     answer = Column(Text,nullable=False)
     tokens_consumed = Column(DECIMAL(10, 2), nullable=False)
@@ -14,7 +15,7 @@ class ChatMessage(BaseModel):
 class ChatChannel(BaseModel):
     __tablename__ = 'chat_channels'
     id = Column(Integer, primary_key=True, autoincrement=True)
-    channel_id = Column(String(100), nullable=True)
+    channel_uuid = Column(String(100), nullable=True)
     title = Column(String(255), nullable=True)
     user_id = Column(Integer, nullable=False)
     status = Column(Integer, nullable=False)
