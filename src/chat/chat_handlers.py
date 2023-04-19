@@ -5,10 +5,7 @@ from ..user.user_module import *
 import json
 from flask import Flask, request, Response, stream_with_context
 
-def create_stream_with_retry(message, channel=None, max_attempts=None):
-    if max_attempts is None:
-        max_attempts = len(hot_config.token_cycle)
-
+def create_stream_with_retry(message, channel=None, max_attempts=3):
     for _ in range(max_attempts):
         access_token = hot_config.get_next_api_key()
         print(access_token)
