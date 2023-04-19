@@ -90,8 +90,8 @@ def create_stream():
         # 创建 stream
         stream_id, channel_uuid = create_stream_with_retry(message, channel_uuid)
 
-        if not ChatChannel.exists(new_session, channel_id=channel_uuid, user_id=user.id, status=status_success):
-            ChatChannel.create(new_session, channel_id=channel_uuid, user_id=user.id, status=status_success,
+        if not ChatChannel.exists(new_session, channel_uuid=channel_uuid, user_id=user.id, status=status_success):
+            ChatChannel.create(new_session, channel_uuid=channel_uuid, user_id=user.id, status=status_success,
                                title=message)
 
         new_channel = ChatChannel.query(new_session, channel_uuid=channel_uuid, user_id=user.id, status=status_success)
@@ -191,7 +191,7 @@ def get_channels():
         channels = ChatChannel.get_channels_by_user(session, user_id=user.id, status=status_success)
         channels_data = []
         for channel in channels:
-            channels_data.append({"id": channel.id,"channel_id": channel.channel_id, "title": channel.title})
+            channels_data.append({"id": channel.id, "channel_id": channel.channel_uuid, "title": channel.title})
 
         response_data = ErrorCode.success({'channels': channels_data})
         return jsonify(response_data)
