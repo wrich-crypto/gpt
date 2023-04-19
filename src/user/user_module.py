@@ -99,7 +99,7 @@ def update_user_balance(user_id, reward):
 
     return True
 
-def generate_invication(inviter_id, invitee_id):
+def generate_invication(session, inviter_id, invitee_id):
     inviter_recharge = UserRecharge.exists(session, user_id=inviter_id, recharge_method=recharge_method_pay)
     invitee_recharge = UserRecharge.exists(session, user_id=invitee_id, recharge_method=recharge_method_pay)
     inviter_reward, invitee_reward = get_reward(inviter_recharge, invitee_recharge)
@@ -134,7 +134,7 @@ def generate_code():
     code = ''.join(random.choices(string.digits, k=6))
     return code
 
-def register_verification(registration_type, verification_code, email, phone):
+def register_verification(session, registration_type, verification_code, email, phone):
     registration_type = int(registration_type)
 
     if registration_type == verification_type_email:

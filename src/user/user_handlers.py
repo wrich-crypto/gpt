@@ -48,7 +48,7 @@ def handle_user_registration():
     if username is None or username == '' or password is None or password == '':
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'invalid parameter')
 
-    success, err = register_verification(verification_type, verification_code, email, phone)
+    success, err = register_verification(session, verification_type, verification_code, email, phone)
     if success is False:
         logger.error(f'handle_user_registration register_verification '
                      f'verification_type:{verification_type} '
@@ -79,7 +79,7 @@ def handle_user_registration():
     referral_user = User.query(session, referral_code=referral_code)
 
     if referral_user is not None and referral_user.id > 0:
-        generate_invication(referral_user.id, instance.id)
+        generate_invication(session, referral_user.id, instance.id)
 
     response_data = {'code': 0, 'msg': 'success'}
     return jsonify(response_data)
@@ -117,7 +117,7 @@ def handle_user_invite():
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'account referral already')
 
     if referral_user is not None and referral_user.id > 0:
-        generate_invication(referral_user.id, user.id)
+        generate_invication(session, referral_user.id, user.id)
 
     response_data = ErrorCode.success()
     return jsonify(response_data)
