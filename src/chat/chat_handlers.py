@@ -107,9 +107,10 @@ def create_stream():
         return error_response(ErrorCode.ERROR_INTERNAL_SERVER, "server error")
 
 
-@chat_bp.route('/stream/<string:stream_id>', methods=['GET'])
-def stream(stream_id):
+@chat_bp.route('/stream', methods=['GET'])
+def stream():
     try:
+        stream_id = request.args.get('stream_id')
         session = g.session
         auth_header = request.headers.get('Authorization')
         if not auth_header or not auth_header.startswith('Bearer '):
