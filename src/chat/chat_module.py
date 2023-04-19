@@ -4,7 +4,7 @@ class ChatMessage(BaseModel):
     __tablename__ = 'chat_messages'
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, nullable=False)
-    channel_id = Column(String(100), nullable=False)
+    channel_id = Column(Integer, nullable=False)
     message_id = Column(String(100), nullable=False)
     stream_id = Column(String(100), nullable=False)
     question = Column(Text, nullable=False)

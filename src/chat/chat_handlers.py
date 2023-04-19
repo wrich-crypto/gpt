@@ -75,6 +75,12 @@ def create_stream():
 
         token = auth_header[7:]
 
+        user = User.query(new_session, token=token)
+
+        if not user:
+            logger.error(f'Invalid token, auth_header:{auth_header}')
+            return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "Invalid token")
+
         data = g.data
         channel_uuid = data.get('channel')
         message = data.get('message')
@@ -83,8 +89,6 @@ def create_stream():
 
         # 创建 stream
         stream_id, channel_uuid = create_stream_with_retry(message, channel_uuid)
-
-        user = User.query(new_session, token=token)
 
         if not ChatChannel.exists(new_session, channel_id=channel_uuid, user_id=user.id, status=status_success):
             ChatChannel.create(new_session, channel_id=channel_uuid, user_id=user.id, status=status_success,
