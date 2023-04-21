@@ -100,7 +100,7 @@ def create_stream():
         ChatMessage.create(new_session, user_id=user.id, channel_id=current_channel_index_id, stream_id=stream_id,
                            question=message)
 
-        response_data = ErrorCode.success({"stream_id": stream_id})
+        response_data = ErrorCode.success({"stream_id": stream_id, "channel_id": channel_uuid})
         return jsonify(response_data)
     except Exception as e:
         logger.error(f"create_stream error:{e}")
