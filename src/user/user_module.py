@@ -102,7 +102,13 @@ def update_user_balance(session, user_id, reward):
 def generate_invication(session, inviter_id, invitee_id):
     inviter_recharge = UserRecharge.exists(session, user_id=inviter_id, recharge_method=recharge_method_pay)
     invitee_recharge = UserRecharge.exists(session, user_id=invitee_id, recharge_method=recharge_method_pay)
+
+    print(f'inviter_recharge:{inviter_recharge}')
+    print(f'invitee_recharge:{invitee_recharge}')
     inviter_reward, invitee_reward = get_reward(inviter_recharge, invitee_recharge)
+
+    print(f'inviter_reward:{inviter_reward}')
+    print(f'invitee_reward:{invitee_reward}')
 
     instance, e =UserInvitation.create(session, inviter_id=inviter_id, invitee_id=invitee_id,
                                        inviter_reward=inviter_reward, invitee_reward=invitee_reward)
