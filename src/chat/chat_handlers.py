@@ -82,7 +82,7 @@ def create_stream():
             return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "Invalid token")
 
         data = g.data
-        channel_uuid = data.get('channel')
+        channel_uuid = data.get('channel_id')
         message = data.get('message')
         timestamp = data.get('timestamp')
         extras = data.get('extras')
@@ -137,7 +137,8 @@ def stream():
 
 @chat_bp.route('/history/<string:channel_id>', methods=['GET'])
 def get_history(channel_id):
-    if int(channel_id) <= 0:
+
+    if channel_id is None or channel_id == "":
         logger.error(f'Invalid channel_id, channel_id:{channel_id}')
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid channel_id')
 
@@ -155,7 +156,13 @@ def get_history(channel_id):
             logger.error(f'Invalid token, auth_header:{auth_header}')
             return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "Invalid token")
 
-        chat_history, e = ChatMessage.query_all(session, limit=100, user_id=user.id, channel_id=channel_id)
+        new_channel = ChatChannel.query(session, channel_uuid=channel_id, user_id=user.id, status=status_success)
+
+        if not new_channel:
+            logger.error(f'Invalid channel_id, channel_id:{channel_id}')
+            return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "Invalid channel_id")
+
+        chat_history, e = ChatMessage.query_all(session, limit=100, user_id=user.id, channel_id=new_channel.id)
 
         response_data = ErrorCode.success({
             'chat_history': [
@@ -201,7 +208,7 @@ def get_channels():
         logger.error(f"Error while getting channels: {str(e)}")
         return error_response(ErrorCode.ERROR_INTERNAL_SERVER, "Error getting channels")
 
-@chat_bp.route('/channel/<int:channel_id>', methods=['DELETE'])
+@chat_bp.route('/channel/<string:channel_id>', methods=['DELETE'])
 def delete_channel(channel_id):
     session = g.session
     auth_header = request.headers.get('Authorization')
@@ -211,12 +218,22 @@ def delete_channel(channel_id):
 
     token = auth_header[7:]
     try:
+        if channel_id is None or channel_id == "":
+            logger.error(f'Invalid channel_id, channel_id:{channel_id}')
+            return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid channel_id')
+
         user = User.query(session, token=token)
         if not user:
             logger.error(f'Invalid token, auth_header:{auth_header}')
             return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "Invalid token")
 
-        success, error = ChatChannel.delete_channel(session, channel_id, user.id)
+        new_channel = ChatChannel.query(session, channel_uuid=channel_id, user_id=user.id, status=status_success)
+
+        if not new_channel:
+            logger.error(f'Invalid channel_id, channel_id:{channel_id}')
+            return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "Invalid channel_id")
+
+        success, error = ChatChannel.delete_channel(session, new_channel.id, user.id)
         if success:
             response_data = ErrorCode.success({"message": "Channel deleted successfully"})
             return jsonify(response_data)
