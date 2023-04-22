@@ -79,7 +79,7 @@ def get_reward(inviter_recharge, invitee_recharge):
     elif inviter_recharge is False and invitee_recharge is False:
         return 50000, 50000
 
-def update_user_balance(user_id, reward):
+def update_user_balance(session, user_id, reward):
     userBalance = UserBalance.query(session, user_id=user_id)
     reward = Decimal(reward)
 
@@ -123,8 +123,8 @@ def generate_invication(session, inviter_id, invitee_id):
         logger.error(f'UserRecharge.create inviter_id:{inviter_id} error:{e}')
 
     logger.info('update_user_balance')
-    update_user_balance(inviter_id, inviter_reward)
-    update_user_balance(invitee_id, invitee_reward)
+    update_user_balance(session, inviter_id, inviter_reward)
+    update_user_balance(session, invitee_id, invitee_reward)
 
 def generate_referral_code():
     referral_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))

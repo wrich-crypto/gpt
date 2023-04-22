@@ -324,7 +324,7 @@ def handle_payment():
     if instance is None:
         logger.error(f'UserRecharge.create inviter_id:{user.id} error:{e}')
 
-    update_user_balance(user.id, token_amount)
+    update_user_balance(session, user.id, token_amount)
 
     response_data = ErrorCode.success()
     return jsonify(response_data)
