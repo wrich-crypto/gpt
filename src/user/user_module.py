@@ -76,6 +76,8 @@ def get_reward(inviter_recharge, invitee_recharge):
         return 100000, 100000
     elif inviter_recharge is False and invitee_recharge is True:
         return 50000, 100000
+    elif invitee_recharge is False and inviter_recharge is True:
+        return 50000, 100000
     elif inviter_recharge is False and invitee_recharge is False:
         return 50000, 50000
 
