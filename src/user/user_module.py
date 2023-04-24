@@ -101,16 +101,37 @@ def update_user_balance(session, user_id, reward):
 
     return True
 
+def update_user_consumed(session, user_id, consumed_amount):
+    userBalance = UserBalance.query(session, user_id=user_id)
+    consumed_amount = Decimal(consumed_amount)
+
+    if userBalance is None:
+        return False
+
+    result, e = UserBalance.upsert(session, {'user_id': user_id},
+                       {'user_id': user_id, 'consumed_amount': consumed_amount})
+
+    if result is False:
+        logger.error(f'user_id:{user_id} update_user_consumed:{consumed_amount} error:{e}')
+        return False
+
+    return True
+
+def balance_valid(session, user_id):
+    userBalance = UserBalance.query(session, user_id=user_id)
+
+    if userBalance is None:
+        return False
+
+    if userBalance.total_recharge - userBalance.consumed_amount > 0:
+        return True
+
+    return False
+
 def generate_invication(session, inviter_id, invitee_id):
     inviter_recharge = UserRecharge.exists(session, user_id=inviter_id, recharge_method=recharge_method_pay)
     invitee_recharge = UserRecharge.exists(session, user_id=invitee_id, recharge_method=recharge_method_pay)
-
-    print(f'inviter_recharge:{inviter_recharge}')
-    print(f'invitee_recharge:{invitee_recharge}')
     inviter_reward, invitee_reward = get_reward(inviter_recharge, invitee_recharge)
-
-    print(f'inviter_reward:{inviter_reward}')
-    print(f'invitee_reward:{invitee_reward}')
 
     instance, e =UserInvitation.create(session, inviter_id=inviter_id, invitee_id=invitee_id,
                                        inviter_reward=inviter_reward, invitee_reward=invitee_reward)

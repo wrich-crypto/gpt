@@ -87,6 +87,10 @@ def create_stream():
         timestamp = data.get('timestamp')
         extras = data.get('extras')
 
+        if balance_valid(new_session, user.id) is False:
+            logger.error(f'Invalid token, auth_header:{auth_header}')
+            return error_response(ErrorCode.ERROR_BALANCE, "Insufficient balance")
+
         # 创建 stream
         stream_id, channel_uuid = create_stream_with_retry(message, channel_uuid)
 
@@ -99,6 +103,9 @@ def create_stream():
 
         ChatMessage.create(new_session, user_id=user.id, channel_id=current_channel_index_id, stream_id=stream_id,
                            question=message)
+
+        if update_user_consumed(new_session, user.id, 500) is False:
+            logger.error(f'create_stream - update_user_consumed error')
 
         response_data = ErrorCode.success({"stream_id": stream_id, "channel_id": channel_uuid})
         return jsonify(response_data)
