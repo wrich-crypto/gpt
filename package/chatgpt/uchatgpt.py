@@ -26,7 +26,8 @@ class ChatAPI:
         payload = {"prompt": prompt,
                    "conversationId": conversation_id,
                    # "sceneId": 101,
-                   "accessToken": self.access_token}
+                   "accessToken": self.access_token,
+                   "useEscape": True}
         response = requests.post(url, json=payload)
         return response.json()
 
