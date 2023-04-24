@@ -40,7 +40,7 @@ class ChatAPI:
         payload = {"streamId": stream_id,
                    "accessToken": self.access_token}
         response = requests.post(url, json=payload)
-        return response
+        return response.json()
 
 class DecodedChunk:
     def __init__(self, chunk: str):

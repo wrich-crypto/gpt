@@ -19,6 +19,9 @@ def test_chat_api():
         stream_id = create_stream_response["data"]["streamId"]
         stream_response = chat_api.get_stream(stream_id)
         print(stream_response.text)
+
+        stream_token_response = chat_api.get_stream_consume(stream_id)
+        print(stream_token_response.text)
     except Exception as e:
         print(f"Test failed: {e}")
 
