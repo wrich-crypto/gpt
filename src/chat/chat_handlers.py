@@ -51,9 +51,9 @@ def generate(stream_id, user_id):
 
                 if decoded_chunk_obj.event == 'message':
                     content = content + decoded_chunk_obj.data
-                    logger.debug(content)
                     yield decoded_chunk
 
+        logger.debug(content)
         new_session = session_factory()
         chat_message = ChatMessage.query(new_session, stream_id=stream_id)
         if chat_message:
