@@ -35,6 +35,13 @@ class ChatAPI:
         response = requests.get(url, stream=True)
         return response
 
+    def get_stream_consume(self, stream_id):
+        url = f"{self.base_url}/chat/stream/sync"
+        payload = {"streamId": stream_id,
+                   "accessToken": self.access_token}
+        response = requests.post(url, json=payload)
+        return response
+
 class DecodedChunk:
     def __init__(self, chunk: str):
         self.id = None

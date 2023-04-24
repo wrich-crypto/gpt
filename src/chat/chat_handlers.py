@@ -32,7 +32,7 @@ def create_stream_with_retry(message, channel=None, max_attempts=3):
     raise ValueError("Failed to create stream after maximum attempts.")
 
 @stream_with_context
-def generate(stream_id):
+def generate(stream_id, user_id):
     try:
         access_token = hot_config.get_next_api_key()
         print(access_token)
@@ -58,6 +58,21 @@ def generate(stream_id):
         chat_message = ChatMessage.query(new_session, stream_id=stream_id)
         if chat_message:
             ChatMessage.update(new_session, conditions={"stream_id": stream_id}, updates={"answer": content})
+
+        consume_response = chat_api.get_stream_consume(stream_id)
+        if consume_response and str(consume_response["code"]) == '0':
+            logger.info(f'chat gpt consume_response response: {consume_response}')
+            consume_token_amount = int(consume_response["data"]["token"])
+
+            if update_user_consumed(new_session, user_id, consume_token_amount) is False:
+                logger.error(f'generate - update_user_consumed user_id:{user_id} consume_token_amount : '
+                             f'{consume_token_amount} error')
+            else:
+                logger.info(f'generate - update_user_consumed user_id:{user_id} consume_token_amount : '
+                            f'{consume_token_amount} success')
+        else:
+            logger.error(f'chat gpt error: {consume_response}')
+
         new_session.close()
 
     except Exception as e:
@@ -104,9 +119,6 @@ def create_stream():
         ChatMessage.create(new_session, user_id=user.id, channel_id=current_channel_index_id, stream_id=stream_id,
                            question=message)
 
-        if update_user_consumed(new_session, user.id, 500) is False:
-            logger.error(f'create_stream - update_user_consumed error')
-
         response_data = ErrorCode.success({"stream_id": stream_id, "channel_id": channel_uuid})
         return jsonify(response_data)
     except Exception as e:
@@ -137,7 +149,7 @@ def stream():
             "Cache-Control": "no-cache",
             "Connection": "keep-alive",
         }
-        return Response(generate(stream_id), headers=headers)
+        return Response(generate(stream_id, user.id), headers=headers)
     except Exception as e:
         logger.error(f"stream error:{e}")
         return error_response(ErrorCode.ERROR_INTERNAL_SERVER, "server error")
