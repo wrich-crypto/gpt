@@ -88,7 +88,7 @@ def create_stream():
         extras = data.get('extras')
 
         if balance_valid(new_session, user.id) is False:
-            logger.error(f'Invalid token, auth_header:{auth_header}')
+            logger.error(f'Insufficient balance, auth_header:{auth_header}, user id:{user.id}')
             return error_response(ErrorCode.ERROR_BALANCE, "Insufficient balance")
 
         # 创建 stream
