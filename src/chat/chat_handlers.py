@@ -51,7 +51,7 @@ def generate(stream_id, user_id):
 
                 if decoded_chunk_obj.event == 'message':
                     content = content + decoded_chunk_obj.data
-                    logger.info(content)
+                    logger.debug(content)
                     yield decoded_chunk
 
         new_session = session_factory()
@@ -61,7 +61,7 @@ def generate(stream_id, user_id):
 
         consume_response = chat_api.get_stream_consume(stream_id)
         if consume_response and str(consume_response["code"]) == '0':
-            logger.info(f'chat gpt consume_response response: {consume_response}')
+            logger.debug(f'chat gpt consume_response response: {consume_response}')
             consume_token_amount = int(consume_response["data"]["token"])
 
             if update_user_consumed(new_session, user_id, consume_token_amount) is False:
