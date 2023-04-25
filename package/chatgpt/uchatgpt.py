@@ -16,18 +16,21 @@ class ChatAPI:
         url = f"{self.base_url}/chat/ask"
         payload = {"prompt": prompt,
                    "conversationId": conversation_id,
-                   # "sceneId": 101,
                    "accessToken": self.access_token}
         response = requests.post(url, json=payload)
         return response.json()
 
-    def create_stream(self, prompt, conversation_id=None):
+    def create_stream(self, prompt, conversation_id=None, version='3.5'):
         url = f"{self.base_url}/chat/stream/create"
+
         payload = {"prompt": prompt,
                    "conversationId": conversation_id,
-                   # "sceneId": 101,
                    "accessToken": self.access_token,
                    "useEscape": True}
+
+        if version != '3.5':
+            payload['sceneId'] = 101
+
         response = requests.post(url, json=payload)
         return response.json()
 

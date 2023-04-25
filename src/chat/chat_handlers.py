@@ -5,7 +5,7 @@ from ..user.user_module import *
 import json
 from flask import Flask, request, Response, stream_with_context
 
-def create_stream_with_retry(message, channel=None, max_attempts=3):
+def create_stream_with_retry(message, channel=None, version='3.5', max_attempts=3):
     for _ in range(max_attempts):
         access_token = hot_config.get_next_api_key()
         print(access_token)
@@ -16,7 +16,7 @@ def create_stream_with_retry(message, channel=None, max_attempts=3):
         chat_api = ChatAPI(access_token)
 
         channel_id = channel if channel and channel.strip() != "" else generate_uuid()
-        create_stream_response = chat_api.create_stream(message, channel_id)
+        create_stream_response = chat_api.create_stream(message, channel_id, version)
         print(f'create_stream_response:{create_stream_response}')
 
         if create_stream_response and str(create_stream_response["code"]) == '0':
@@ -101,13 +101,14 @@ def create_stream():
         message = data.get('message')
         timestamp = data.get('timestamp')
         extras = data.get('extras')
+        version = data.get('version')
 
         if balance_valid(new_session, user.id) is False:
             logger.error(f'Insufficient balance, auth_header:{auth_header}, user id:{user.id}')
             return error_response(ErrorCode.ERROR_BALANCE, "Insufficient balance")
 
         # 创建 stream
-        stream_id, channel_uuid = create_stream_with_retry(message, channel_uuid)
+        stream_id, channel_uuid = create_stream_with_retry(message, channel_uuid, version)
 
         if not ChatChannel.exists(new_session, channel_uuid=channel_uuid, user_id=user.id, status=status_success):
             ChatChannel.create(new_session, channel_uuid=channel_uuid, user_id=user.id, status=status_success,
