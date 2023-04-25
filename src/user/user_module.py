@@ -184,23 +184,32 @@ def register_verification(session, registration_type, verification_code, email, 
     registration_type = int(registration_type)
 
     if registration_type == verification_type_email:
-        if email is None or email == '':
-            logger.error(f'email:{email} is null')
-            return False, f'email:{email} is null'
-
         if User.exists(session, email=email):
             logger.error(f'email:{email} exist')
             return False, f'email:{email} exist'
+
+    elif registration_type == verification_type_phone:
+        if User.exists(session, phone=phone):
+            logger.error(f'phone:{phone} exist')
+            return False, f'phone:{phone} exist'
+    else:
+        return False, f'registration_type:{registration_type} error'
+
+    return user_verification(session, registration_type, verification_code, email, phone)
+
+def user_verification(session, registration_type, verification_code, email, phone):
+    registration_type = int(registration_type)
+
+    if registration_type == verification_type_email:
+        if email is None or email == '':
+            logger.error(f'email:{email} is null')
+            return False, f'email:{email} is null'
 
         verification = VerificationCode.query(session, code_type=registration_type, email=email)
     elif registration_type == verification_type_phone:
         if phone is None or phone == '':
             logger.error(f'phone:{phone} is null')
             return False, f'phone:{phone} is null'
-
-        if User.exists(session, phone=phone):
-            logger.error(f'phone:{phone} exist')
-            return False, f'phone:{phone} exist'
 
         verification = VerificationCode.query(session, code_type=registration_type, phone=phone)
     else:

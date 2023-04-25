@@ -472,7 +472,7 @@ def reset_password():
     if user is None:
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'User not found')
 
-    is_verified, err_msg = register_verification(session, verification_type, verification_code, email, phone)
+    is_verified, err_msg = user_verification(session, verification_type, verification_code, email, phone)
     if not is_verified:
         logger.error(f'reset_password, register_verification, error:{err_msg}')
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, err_msg)
