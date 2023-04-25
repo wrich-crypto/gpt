@@ -424,9 +424,8 @@ def get_available_recharge_cards():
     if e:
         logger.error(f'get_available_recharge_cards RechargeCard.query_all error:{e}')
 
-    cards_data = [{'card_account': card.card_account, 'recharge_amount': str(card.recharge_amount)} for card in available_cards]
-    if len(cards_data) <= 0:
-        cards_data = []
+    cards_data = [{'card_account': card.card_account, 'card_password': card.card_password,
+                   'recharge_amount': str(card.recharge_amount)} for card in available_cards]
 
     response_data = ErrorCode.success(cards_data)
     return jsonify(response_data)
