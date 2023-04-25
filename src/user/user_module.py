@@ -2,6 +2,7 @@ from init import *
 
 recharge_method_pay = 1
 recharge_method_invite = 2
+recharge_method_card = 3
 
 status_success = 1
 status_failed = 2

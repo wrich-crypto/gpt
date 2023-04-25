@@ -402,6 +402,11 @@ def handle_recharge():
     if err:
         logger.error(f'handle_recharge update_recharge_card_status error:{err}')
 
+    instance, e = UserRecharge.create(session, user_id=user.id, amount=recharge_card.recharge_amount,
+                                      recharge_method=recharge_method_card, status=status_success)
+    if instance is None:
+        logger.error(f'handle_recharge UserRecharge.create inviter_id:{user.id} error:{e}')
+
     response_data = ErrorCode.success()
     return jsonify(response_data)
 
