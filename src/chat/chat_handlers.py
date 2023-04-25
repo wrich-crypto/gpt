@@ -107,7 +107,6 @@ def create_stream():
             logger.error(f'Insufficient balance, auth_header:{auth_header}, user id:{user.id}')
             return error_response(ErrorCode.ERROR_BALANCE, "Insufficient balance")
 
-        # 创建 stream
         stream_id, channel_uuid = create_stream_with_retry(message, channel_uuid, str(version))
 
         if not ChatChannel.exists(new_session, channel_uuid=channel_uuid, user_id=user.id, status=status_success):
