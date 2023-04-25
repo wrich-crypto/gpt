@@ -28,7 +28,7 @@ class ChatAPI:
                    "accessToken": self.access_token,
                    "useEscape": True}
 
-        if version != '3.5':
+        if version == '4':
             payload['sceneId'] = 101
 
         response = requests.post(url, json=payload)
