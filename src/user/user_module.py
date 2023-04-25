@@ -216,11 +216,12 @@ def user_verification(session, registration_type, verification_code, email, phon
         return False, f'registration_type:{registration_type} error'
 
     if not verification:
-        logger.error(f'verification not find'
+        logger.error(f'verification not find '
                      f'registration_type:{registration_type},'
                      f'verification_code:{verification_code},'
                      f'email:{email},'
-                     f'phone:{phone},')
+                     f'phone:{phone},'
+                     f'verification.code:{verification.code}')
         return False, f'verification code error, send verification code again'
 
     if verification.code != verification_code:

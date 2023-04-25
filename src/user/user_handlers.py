@@ -462,17 +462,24 @@ def add_recharge_card():
 def reset_password():
     session = g.session
     username = g.data.get('username')
-    verification_code = g.data.get('verification_code_code')
+    verification_code = g.data.get('verification_code')
     verification_type = g.data.get('verification_type')
     phone = g.data.get('phone')
     email = g.data.get('email')
     new_password = g.data.get('new_password')
 
-    user = User.query(session, username=username)
+    if verification_type == verification_type_phone:
+        user = User.query(session, phone=phone)
+    elif verification_type == verification_type_email:
+        user = User.query(session, email=email)
+    else:
+        user = User.query(session, username=username)
+
     if user is None:
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'User not found')
 
     is_verified, err_msg = user_verification(session, verification_type, verification_code, email, phone)
+
     if not is_verified:
         logger.error(f'reset_password, register_verification, error:{err_msg}')
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, err_msg)
