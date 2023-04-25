@@ -248,12 +248,22 @@ def handle_get_user_invitations():
 
     token = auth_header[7:]
 
+    page = request.args.get('page')
+    page_size = request.args.get('pageSize')
+
+    if page is None or int(page) <= 0:
+        page = 1
+
+    if page_size is None or int(page_size) <= 0:
+        page_size = 50
+
     user = User.query(session, token=token)
     if not user:
         logger.error(f'Invalid token, auth_header:{auth_header}')
         return error_response(-1, "Invalid token")
 
-    invitations, _ = UserInvitation.query_all(session, inviter_id=user.id)
+    offset = (int(page) - 1) * int(page_size)
+    invitations, _ = UserInvitation.query_all(session, limit=int(page_size), offset=offset, inviter_id=user.id)
 
     invitation_data = []
     for invitation in invitations:
@@ -341,7 +351,7 @@ def handle_get_user_info():
     user = User.query(session, token=token)
     if not user:
         logger.error(f'Invalid token, auth_header:{auth_header}')
-        return error_response(-1, "Invalid token")
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid token')
 
     user_balance = UserBalance.query(session, user_id=user.id)
     if not user_balance:
@@ -358,4 +368,119 @@ def handle_get_user_info():
     }
 
     response_data = ErrorCode.success(user_info)
+    return jsonify(response_data)
+
+@user_bp.route('/recharge', methods=['POST'])
+def handle_recharge():
+    session = g.session
+    card_account = g.data.get('card_account')
+    card_password = g.data.get('card_password')
+
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        logger.error(f'Invalid token, auth_header:{auth_header}')
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid token')
+
+    token = auth_header[7:]
+
+    user = User.query(session, token=token)
+    if user is None:
+        logger.error(f'Invalid token, auth_header:{auth_header}')
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid token')
+
+    recharge_card = RechargeCard.query(session, card_account=card_account, card_password=card_password)
+
+    if recharge_card is None or recharge_card.usage_status != recharge_card_status_normal:
+        logger.error(f'Invalid card_account, card_account:{card_account} card_password:{card_password}')
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid recharge card or already used')
+
+    if update_user_balance(session, user.id, recharge_card.recharge_amount) is False:
+        logger.error(f'handle_recharge update_user_balance, card_account:{card_account} '
+                     f'card_password:{card_password} recharge_card.recharge_amount:{recharge_card.recharge_amount}')
+
+    ret, err = update_recharge_card_status(session, recharge_card.card_account, recharge_card_status_used)
+    if err:
+        logger.error(f'handle_recharge update_recharge_card_status error:{err}')
+
+    response_data = ErrorCode.success()
+    return jsonify(response_data)
+
+@user_bp.route('/recharge_cards', methods=['GET'])
+def get_available_recharge_cards():
+    session = g.session
+
+    page = request.args.get('page')
+    page_size = request.args.get('pageSize')
+
+    if page is None or int(page) <= 0:
+        page = 1
+
+    if page_size is None or int(page_size) <= 0:
+        page_size = 50
+
+    offset = (int(page) - 1) * int(page_size)
+    available_cards = RechargeCard.query_all(session, limit=int(page_size), offset=offset, status=recharge_card_status_normal)
+    cards_data = [{'card_account': card.card_account, 'recharge_amount': str(card.recharge_amount)} for card in available_cards]
+
+    response_data = ErrorCode.success(cards_data)
+    return jsonify(response_data)
+
+@user_bp.route('/add_recharge_card', methods=['POST'])
+def add_recharge_card():
+    session = g.session
+    card_account = g.data.get('card_account')
+    card_password = g.data.get('card_password')
+    recharge_amount = g.data.get('recharge_amount')
+
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        logger.error(f'Invalid token, auth_header:{auth_header}')
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid token')
+
+    token = auth_header[7:]
+
+    user = User.query(session, token=token)
+    if user is None:
+        logger.error(f'Invalid token, auth_header:{auth_header}')
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid token')
+
+    new_card, e = RechargeCard.create(session, card_account=card_account, card_password=card_password, recharge_amount=recharge_amount)
+
+    if new_card is None:
+        logger.error(f'add_recharge_card, Failed to create recharge card, error:{e}')
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Failed to create recharge card')
+
+    response_data = ErrorCode.success()
+    return jsonify(response_data)
+
+@user_bp.route('/reset_password', methods=['POST'])
+def reset_password():
+    session = g.session
+    username = g.data.get('username')
+    verification_code = g.data.get('verification_code_code')
+    verification_type = g.data.get('verification_type')
+    phone = g.data.get('phone')
+    email = g.data.get('email')
+    new_password = g.data.get('new_password')
+
+    user = User.query(session, username=username)
+    if user is None:
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'User not found')
+
+    is_verified, err_msg = register_verification(session, verification_type, verification_code, email, phone)
+    if not is_verified:
+        logger.error(f'reset_password, register_verification, error:{err_msg}')
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, err_msg)
+
+    hashed_new_password = hash_token(new_password)
+    new_token = generate_token(user.username, hashed_new_password)
+
+    success, error_message = User.update(session, {"id": user.id},
+                                         {"password": hashed_new_password, "token": new_token})
+    if success:
+        response_data = ErrorCode.success()
+    else:
+        logger.error(f'user not exist, username:{username}')
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, error_message)
+
     return jsonify(response_data)

@@ -12,6 +12,9 @@ code_type_phone = 2
 verification_type_email = 1
 verification_type_phone = 2
 
+recharge_card_status_normal = 1
+recharge_card_status_used = 2
+
 class User(BaseModel):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -70,6 +73,20 @@ class VerificationCode(BaseModel):
     code_type = Column(String(10), nullable=False)              #1邮箱2手机
     code = Column(String(10), nullable=False)
     expired_at = Column(TIMESTAMP, server_default=text("CURRENT_TIMESTAMP + INTERVAL '5' MINUTE"), nullable=False)
+
+class RechargeCard(BaseModel):
+    __tablename__ = 'recharge_cards'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    card_account = Column(String(20), unique=True, nullable=False)
+    card_password = Column(String(20), nullable=False)
+    recharge_amount = Column(DECIMAL(20, 2), nullable=False)
+    status = Column(Integer, nullable=False, default=1)  # 1未使用, 2已使用
+    recharge_time = Column(DateTime, nullable=True)
+    created_at = Column(TIMESTAMP, default='CURRENT_TIMESTAMP', nullable=False)
+
+def update_recharge_card_status(session, card_account, status=recharge_card_status_used):
+    return RechargeCard.update(session, {'card_account': card_account},
+                       {'status': status})
 
 def get_reward(inviter_recharge, invitee_recharge):
     if inviter_recharge is True and invitee_recharge is True:
