@@ -390,7 +390,7 @@ def handle_recharge():
 
     recharge_card = RechargeCard.query(session, card_account=card_account, card_password=card_password)
 
-    if recharge_card is None or recharge_card.usage_status != recharge_card_status_normal:
+    if recharge_card is None or recharge_card.status != recharge_card_status_normal:
         logger.error(f'Invalid card_account, card_account:{card_account} card_password:{card_password}')
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid recharge card or already used')
 
@@ -419,7 +419,11 @@ def get_available_recharge_cards():
         page_size = 50
 
     offset = (int(page) - 1) * int(page_size)
-    available_cards = RechargeCard.query_all(session, limit=int(page_size), offset=offset, status=recharge_card_status_normal)
+    available_cards, e = RechargeCard.query_all(session, limit=int(page_size), offset=offset, status=recharge_card_status_normal)
+
+    if e:
+        logger.error(f'get_available_recharge_cards RechargeCard.query_all error:{e}')
+
     cards_data = [{'card_account': card.card_account, 'recharge_amount': str(card.recharge_amount)} for card in available_cards]
 
     response_data = ErrorCode.success(cards_data)
