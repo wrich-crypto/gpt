@@ -66,7 +66,11 @@ def generate(stream_id, user_id):
         print(consume_response)
         if consume_response and str(consume_response["code"]) == '0':
             logger.debug(f'chat gpt consume_response response: {consume_response}')
-            consume_token_amount = int(consume_response["data"]["token"])
+            try:
+                consume_token_amount = int(consume_response["data"]["token"])
+            except Exception as e:
+                consume_token_amount = 500
+                logger.error(f'enerate - update_user_consumed error:{e}')
 
             if update_user_consumed(new_session, user_id, consume_token_amount) is False:
                 logger.error(f'generate - update_user_consumed user_id:{user_id} consume_token_amount : '
