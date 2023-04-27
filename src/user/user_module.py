@@ -127,11 +127,12 @@ def update_user_consumed(session, user_id, consumed_amount):
     if userBalance is None:
         return False
 
+    current_consumed_amount = userBalance.consumed_amount
     result, e = UserBalance.upsert(session, {'user_id': user_id},
-                       {'user_id': user_id, 'consumed_amount': consumed_amount})
+                       {'user_id': user_id, 'consumed_amount': (consumed_amount + current_consumed_amount)})
 
     if result is False:
-        logger.error(f'user_id:{user_id} update_user_consumed:{consumed_amount} error:{e}')
+        logger.error(f'user_id:{user_id} update_user_consumed:{(consumed_amount + current_consumed_amount)} error:{e}')
         return False
 
     return True

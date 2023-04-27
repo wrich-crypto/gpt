@@ -72,6 +72,7 @@ def generate(stream_id, user_id):
                     f'get_stream_consume_response:{get_stream_consume_response}')
 
         if consume_token_amount >= 0:
+
             if update_user_consumed(new_session, user_id, consume_token_amount) is False:
                 logger.error(f'generate - update_user_consumed user_id:{user_id} consume_token_amount : '
                              f'{consume_token_amount} error')
