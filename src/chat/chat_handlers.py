@@ -63,9 +63,11 @@ def generate(stream_id, user_id):
             ChatMessage.update(new_session, conditions={"stream_id": stream_id}, updates={"answer": content})
 
         consume_response = chat_api.get_stream_consume(stream_id)
-        print(consume_response)
-        if consume_response and str(consume_response["code"]) == '0':
+        print(f'consume_response:{consume_response}')
+
+        if consume_response and str(consume_response["code"]) == 0:
             logger.debug(f'chat gpt consume_response response: {consume_response}')
+            
             try:
                 consume_token_amount = int(consume_response["data"]["token"])
             except Exception as e:
