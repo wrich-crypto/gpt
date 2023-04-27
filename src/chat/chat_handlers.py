@@ -67,8 +67,9 @@ def generate(stream_id, user_id):
             else:
                 logger.info(f'generate ChatMessage.update stream_id:{stream_id} success:{success}')
 
-        consume_token_amount, error_message = chat_api.get_stream_consume(stream_id)
-        logger.info(f'consume_token_amount:{consume_token_amount}, error_message:{error_message}')
+        consume_token_amount, error_message, get_stream_consume_response = chat_api.get_stream_consume(stream_id)
+        logger.info(f'consume_token_amount:{consume_token_amount}, error_message:{error_message}, '
+                    f'get_stream_consume_response:{get_stream_consume_response}')
 
         if consume_token_amount >= 0:
             if update_user_consumed(new_session, user_id, consume_token_amount) is False:
