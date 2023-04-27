@@ -89,6 +89,14 @@ class BaseModel(Base):
             return session.query(cls).filter_by(**kwargs).first()
         except Exception as e:
             print(f'query error:{e}')
+
+            return None
+    @classmethod
+    def query_last(cls, session, **kwargs):
+        try:
+            return session.query(cls).filter_by(**kwargs).order_by(desc(cls.id)).first()
+        except Exception as e:
+            print(f'query_last error: {e}')
             return None
 
     @classmethod

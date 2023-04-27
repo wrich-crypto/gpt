@@ -20,12 +20,13 @@ class ChatAPI:
         response = requests.post(url, json=payload)
         return response.json()
 
-    def create_stream(self, prompt, conversation_id=None, version='3.5'):
+    def create_stream(self, prompt, conversation_id=None, version='3.5', system=''):
         url = f"{self.base_url}/chat/stream/create"
 
         payload = {"prompt": prompt,
                    "conversationId": conversation_id,
                    "accessToken": self.access_token,
+                   "system": system,
                    "useEscape": True}
 
         if version == '4':

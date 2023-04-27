@@ -1,5 +1,6 @@
 from .user_routes import *
 from .user_module import *
+from ..chat.chat_module import ChatMessage
 
 @user_bp.route('/login', methods=['POST'])
 def handle_user_login():
@@ -80,6 +81,15 @@ def handle_user_registration():
 
     if referral_user is not None and referral_user.id > 0:
         generate_invication(session, referral_user.id, instance.id)
+
+    token_amount = 10000
+    user_id = instance.id
+    instance, e = UserRecharge.create(session, user_id=user_id, amount=token_amount, pay_amount=0,
+                                      recharge_method=recharge_method_register, status=status_success)
+    if instance is None:
+        logger.error(f'UserRecharge.create inviter_id:{user_id} error:{e}')
+
+    update_user_balance(session, user_id, token_amount)
 
     response_data = {'code': 0, 'msg': 'success'}
     return jsonify(response_data)
@@ -217,7 +227,7 @@ def handle_get_email_verification_code():
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'email error')
 
     single_send_mail_request = dm_20151123_models.SingleSendMailRequest()
-    single_send_mail_request.account_name = 'test@blk123.com'
+    single_send_mail_request.account_name = 'ervices@AigcChina.Ai'
     single_send_mail_request.to_address = email
     single_send_mail_request.subject = "验证码信息"
     single_send_mail_request.html_body = f"<p>验证码为{str(code)}.</p>"
@@ -359,12 +369,19 @@ def handle_get_user_info():
     else:
         remaining_tokens = user_balance.total_recharge - user_balance.consumed_amount
 
+    last_time_using_token = 0
+    chat_message = ChatMessage.query_last(session, user_id=user.id)
+
+    if chat_message:
+        last_time_using_token = chat_message.tokens_consumed
+
     user_info = {
         'username': user.username,
         'phone': user.phone,
         'email': user.email,
         'remaining_tokens': remaining_tokens,
-        'referral_code': user.referral_code
+        'referral_code': user.referral_code,
+        'last_time_using_token': last_time_using_token,
     }
 
     response_data = ErrorCode.success(user_info)
@@ -441,6 +458,7 @@ def add_recharge_card():
     card_account = g.data.get('card_account')
     card_password = g.data.get('card_password')
     recharge_amount = g.data.get('recharge_amount')
+    num = g.data.get('num', 1)
 
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
@@ -454,14 +472,27 @@ def add_recharge_card():
         logger.error(f'Invalid token, auth_header:{auth_header}')
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid token')
 
-    new_card, e = RechargeCard.create(session, card_account=card_account, card_password=card_password, recharge_amount=recharge_amount)
+    created_cards = []
+    for _ in range(num):
+        if not card_account:
+            card_account = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
+        if not card_password:
+            card_password = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+        if not recharge_amount or int(recharge_amount) <= 0:
+            recharge_amount = 1000000
 
-    if new_card is None:
-        logger.error(f'add_recharge_card, Failed to create recharge card, error:{e}')
-        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Failed to create recharge card')
+        new_card, e = RechargeCard.create(session, card_account=card_account, card_password=card_password, recharge_amount=recharge_amount)
+
+        if new_card is None:
+            logger.error(f'add_recharge_card, Failed to create recharge card, error:{e}')
+            return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Failed to create recharge card')
+
+        created_cards.append({'card_account': card_account, 'card_password': card_password, 'recharge_amount': recharge_amount})
 
     response_data = ErrorCode.success()
+    response_data['cards'] = created_cards
     return jsonify(response_data)
+
 
 @user_bp.route('/reset_password', methods=['POST'])
 def reset_password():

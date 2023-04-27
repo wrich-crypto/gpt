@@ -3,6 +3,7 @@ from init import *
 recharge_method_pay = 1
 recharge_method_invite = 2
 recharge_method_card = 3
+recharge_method_register = 4
 
 status_success = 1
 status_failed = 2
@@ -91,13 +92,13 @@ def update_recharge_card_status(session, card_account, status=recharge_card_stat
 
 def get_reward(inviter_recharge, invitee_recharge):
     if inviter_recharge is True and invitee_recharge is True:
-        return 100000, 100000
+        return 40000, 40000
     elif inviter_recharge is False and invitee_recharge is True:
-        return 50000, 100000
+        return 20000, 40000
     elif inviter_recharge is True and invitee_recharge is False:
-        return 100000, 50000
+        return 40000, 20000
     elif inviter_recharge is False and invitee_recharge is False:
-        return 50000, 50000
+        return 20000, 20000
 
 def update_user_balance(session, user_id, reward):
     userBalance = UserBalance.query(session, user_id=user_id)
