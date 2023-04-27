@@ -60,14 +60,16 @@ def generate(stream_id, user_id):
         new_session = session_factory()
         chat_message = ChatMessage.query(new_session, stream_id=stream_id)
         if chat_message:
-            ChatMessage.update(new_session, conditions={"stream_id": stream_id}, updates={"answer": content})
+            sucess, e = ChatMessage.update(new_session, conditions={"stream_id": stream_id}, updates={"answer": content})
+            if e:
+                print(f'generate ChatMessage.update error:{e}')
 
         consume_response = chat_api.get_stream_consume(stream_id)
         print(f'consume_response:{consume_response}')
 
         if consume_response and str(consume_response["code"]) == 0:
             logger.debug(f'chat gpt consume_response response: {consume_response}')
-            
+
             try:
                 consume_token_amount = int(consume_response["data"]["token"])
             except Exception as e:
