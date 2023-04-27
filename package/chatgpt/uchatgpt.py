@@ -26,11 +26,13 @@ class ChatAPI:
         payload = {"prompt": prompt,
                    "conversationId": conversation_id,
                    "accessToken": self.access_token,
-                   "system": system,
                    "useEscape": True}
 
         if version == '4':
             payload['sceneId'] = 101
+
+        if system != '':
+            payload['system'] = system
 
         response = requests.post(url, json=payload)
         return response.json()
