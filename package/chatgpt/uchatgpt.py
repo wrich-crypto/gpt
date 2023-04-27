@@ -49,6 +49,12 @@ class ChatAPI:
             payload = {"streamId": stream_id,
                        "accessToken": self.access_token}
             response = requests.post(url, json=payload)
+
+            if response.status_code != 200:
+                print(f"Unexpected HTTP status code: {response.status_code}")
+                print(f"Response content: {response.content}")
+                return 500, "Unexpected HTTP status code", None
+
             consume_response = response.json()
             print(f'get_stream_consume response:{response}')
 
