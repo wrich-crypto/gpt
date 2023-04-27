@@ -49,7 +49,7 @@ class ChatAPI:
                        "accessToken": self.access_token}
             response = requests.post(url, json=payload)
             consume_response = response.json()
-            print(response)
+            print(f'get_stream_consume response:{response}')
 
             if consume_response and str(consume_response["code"]) == 0:
                 consume_token_amount = int(consume_response["data"]["token"])
