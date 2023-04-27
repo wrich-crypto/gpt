@@ -62,30 +62,21 @@ def generate(stream_id, user_id):
         if chat_message:
             success, error_message = ChatMessage.update(new_session, {"stream_id": stream_id},
                                                  {"answer": content})
-            # success, e = ChatMessage.update(new_session, conditions={"stream_id": stream_id}, updates={"answer": content})
             if error_message:
-                print(f'generate ChatMessage.update error:{error_message} success:{success}')
+                logger.info(f'generate ChatMessage.update stream_id:{stream_id} error:{error_message} success:{success}')
+            else:
+                logger.info(f'generate ChatMessage.update stream_id:{stream_id} success:{success}')
 
-        consume_response = chat_api.get_stream_consume(stream_id)
-        print(f'consume_response:{consume_response}')
+        consume_token_amount, error_message = chat_api.get_stream_consume(stream_id)
+        logger.info(f'consume_token_amount:{consume_token_amount}, error_message:{error_message}')
 
-        if consume_response and str(consume_response["code"]) == 0:
-            logger.debug(f'chat gpt consume_response response: {consume_response}')
-
-            try:
-                consume_token_amount = int(consume_response["data"]["token"])
-            except Exception as e:
-                consume_token_amount = 500
-                logger.error(f'enerate - update_user_consumed error:{e}')
-
+        if consume_token_amount >= 0:
             if update_user_consumed(new_session, user_id, consume_token_amount) is False:
                 logger.error(f'generate - update_user_consumed user_id:{user_id} consume_token_amount : '
                              f'{consume_token_amount} error')
             else:
                 logger.info(f'generate - update_user_consumed user_id:{user_id} consume_token_amount : '
                             f'{consume_token_amount} success')
-        else:
-            logger.error(f'chat gpt error: {consume_response}')
 
         new_session.close()
 

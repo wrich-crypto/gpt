@@ -43,11 +43,21 @@ class ChatAPI:
         return response
 
     def get_stream_consume(self, stream_id):
-        url = f"{self.base_url}/chat/stream/sync"
-        payload = {"streamId": stream_id,
-                   "accessToken": self.access_token}
-        response = requests.post(url, json=payload)
-        return response.json()
+        try:
+            url = f"{self.base_url}/chat/stream/sync"
+            payload = {"streamId": stream_id,
+                       "accessToken": self.access_token}
+            response = requests.post(url, json=payload)
+            consume_response = response.json()
+
+            if consume_response and str(consume_response["code"]) == 0:
+                consume_token_amount = int(consume_response["data"]["token"])
+            else:
+                consume_token_amount = 500
+
+            return consume_token_amount, None
+        except Exception as e:
+            return 500, e
 
 class DecodedChunk:
     def __init__(self, chunk: str):
