@@ -371,6 +371,7 @@ def handle_get_user_info():
 
     last_time_using_token = 0
     chat_message = ChatMessage.query_last(session, user_id=user.id)
+    logger.info(f'chat_message:{chat_message}')
 
     if chat_message:
         last_time_using_token = chat_message.tokens_consumed
