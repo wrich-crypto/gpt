@@ -227,7 +227,7 @@ def handle_get_email_verification_code():
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'email error')
 
     single_send_mail_request = dm_20151123_models.SingleSendMailRequest()
-    single_send_mail_request.account_name = 'ervices@AigcChina.Ai'
+    single_send_mail_request.account_name = 'services@AigcChina.Ai'
     single_send_mail_request.to_address = email
     single_send_mail_request.subject = "验证码信息"
     single_send_mail_request.html_body = f"<p>验证码为{str(code)}.</p>"
