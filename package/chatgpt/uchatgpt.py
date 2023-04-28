@@ -20,7 +20,7 @@ class ChatAPI:
         response = requests.post(url, json=payload)
         return response.json()
 
-    def create_stream(self, prompt, conversation_id=None, version='3.5', system=''):
+    def create_stream(self, prompt, conversation_id=None, version='3.5', system='chatGPT'):
         url = f"{self.base_url}/chat/stream/create"
 
         payload = {"prompt": prompt,

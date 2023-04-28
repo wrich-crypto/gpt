@@ -5,13 +5,13 @@ from ..user.user_module import *
 import json
 from flask import Flask, request, Response, stream_with_context
 
-def create_stream_with_retry(message, channel=None, version='3.5', system='', max_attempts=3):
+def create_stream_with_retry(message, channel=None, version='3.5', system='chatGPT', max_attempts=3):
     for _ in range(max_attempts):
         access_token = hot_config.get_next_api_key()
         print(access_token)
 
         if system is None:
-            system = ''
+            system = 'chatGPT'
 
         if access_token is None or access_token.strip() == '':
             break
@@ -110,7 +110,7 @@ def create_stream():
         timestamp = data.get('timestamp')
         extras = data.get('extras')
         version = data.get('version')
-        system = data.get('system')
+        system = 'chatGPT'
 
         if balance_valid(new_session, user.id) is False:
             logger.error(f'Insufficient balance, auth_header:{auth_header}, user id:{user.id}')
