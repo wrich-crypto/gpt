@@ -58,18 +58,19 @@ def generate(stream_id, user_id):
 
         logger.debug(content)
         new_session = session_factory()
-        chat_message = ChatMessage.query(new_session, stream_id=stream_id)
-        if chat_message:
-            success, error_message = ChatMessage.update(new_session, {"stream_id": stream_id},
-                                                 {"answer": content})
-            if error_message:
-                logger.info(f'generate ChatMessage.update stream_id:{stream_id} error:{error_message} success:{success}')
-            else:
-                logger.info(f'generate ChatMessage.update stream_id:{stream_id} success:{success}')
 
         consume_token_amount, error_message, get_stream_consume_response = chat_api.get_stream_consume(stream_id)
         logger.info(f'consume_token_amount:{consume_token_amount}, error_message:{error_message}, '
                     f'get_stream_consume_response:{get_stream_consume_response}')
+
+        chat_message = ChatMessage.query(new_session, stream_id=stream_id)
+        if chat_message:
+            success, error_message = ChatMessage.update(new_session, {"stream_id": stream_id},
+                                                 {"answer": content, "tokens_consumed": consume_token_amount})
+            if error_message:
+                logger.info(f'generate ChatMessage.update stream_id:{stream_id} error:{error_message} success:{success}')
+            else:
+                logger.info(f'generate ChatMessage.update stream_id:{stream_id} success:{success}')
 
         if consume_token_amount >= 0:
 
