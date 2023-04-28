@@ -457,8 +457,8 @@ def add_recharge_card():
     session = g.session
     card_account = g.data.get('card_account')
     card_password = g.data.get('card_password')
-    recharge_amount = g.data.get('recharge_amount')
-    num = g.data.get('num', 1)
+    recharge_amount = int(g.data.get('recharge_amount', 100000))
+    num = int(g.data.get('num', 1))
 
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
@@ -474,14 +474,11 @@ def add_recharge_card():
 
     created_cards = []
     for _ in range(num):
-        if not card_account:
-            card_account = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
-        if not card_password:
-            card_password = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
-        if not recharge_amount or int(recharge_amount) <= 0:
-            recharge_amount = 1000000
+        card_account = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
+        card_password = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
 
-        new_card, e = RechargeCard.create(session, card_account=card_account, card_password=card_password, recharge_amount=recharge_amount)
+        new_card, e = RechargeCard.create(session, card_account=card_account,
+                                          card_password=card_password, recharge_amount=recharge_amount)
 
         if new_card is None:
             logger.error(f'add_recharge_card, Failed to create recharge card, error:{e}')
