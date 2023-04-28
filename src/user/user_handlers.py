@@ -206,7 +206,7 @@ def handle_get_phone_verification_code():
         logger.error(f'func handle_get_phone_verification_code, VerificationCode.create, username:{username} error: {e}')
         return error_response(ErrorCode.ERROR_INTERNAL_SERVER, 'server error')
 
-    response_data = ErrorCode.success({'code': str(code)})
+    response_data = ErrorCode.success()
     return jsonify(response_data)
 
 @user_bp.route('/get_email_verification_code', methods=['POST'])
@@ -245,7 +245,7 @@ def handle_get_email_verification_code():
     if instance is None:
         logger.error(f'func handle_get_phone_verification_code, VerificationCode.create, username:{username} error: {e}')
 
-    response_data = ErrorCode.success({'code': str(code)})
+    response_data = ErrorCode.success()
     return jsonify(response_data)
 
 @user_bp.route('/get_user_invitations', methods=['GET'])
