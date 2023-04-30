@@ -283,7 +283,11 @@ def handle_get_user_invitations():
             "reward": invitation.inviter_reward
         })
 
-    response_data = ErrorCode.success({"referral_code": user.referral_code, "invitations": invitation_data})
+    total_num = UserInvitation.count(session, inviter_id=user.id)
+
+
+    response_data = ErrorCode.success({"referral_code": user.referral_code, "invitations": invitation_data,
+                                       "total": total_num})
     return jsonify(response_data)
 
 @user_bp.route('/get_remaining_tokens', methods=['GET'])
