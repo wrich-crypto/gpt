@@ -1,19 +1,19 @@
 from langchain.chains.conversation.memory import ConversationBufferMemory
 from langchain import OpenAI, LLMChain, PromptTemplate
+import openai
 
 class ChatManager():
-    def __init__(self, api_key, max_length=6):
+    def __init__(self, api_key):
         self.channels = {}
         self.api_key = api_key
-        self.max_length = max_length
 
     def get_channel(self, channel_id):
         if channel_id not in self.channels:
-            self.channels[channel_id] = self.create_llm_chain(self.api_key, self.max_length)
+            self.channels[channel_id] = self.create_llm_chain(self.api_key)
         return self.channels[channel_id]
 
     @staticmethod
-    def create_llm_chain(api_key, max_length=6):
+    def create_llm_chain(api_key):
         template = """You are a chatbot having a conversation with a human.
 
                 {chat_history}
@@ -31,9 +31,41 @@ class ChatManager():
             prompt=prompt,
             verbose=True,
             memory=memory,
+            stream=True,
         )
 
         return llm_chain
+
+    def truncate_chat_history(self, chat_history, max_tokens=4096):
+        if len(chat_history) > max_tokens:
+            tokens_to_remove = len(chat_history) - max_tokens
+            removed_dialogue = False
+            while not removed_dialogue and tokens_to_remove > 0:
+                if chat_history[tokens_to_remove] in ["\n", "\r"]:
+                    chat_history = chat_history[tokens_to_remove + 1:]
+                    removed_dialogue = True
+                else:
+                    tokens_to_remove -= 1
+        return chat_history
+
+    def chat_generator(self, chat_history, message, model="text-davinci-002"):
+        openai.api_key = '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'
+        truncated_chat_history = self.truncate_chat_history(chat_history)
+        prompt = f"{truncated_chat_history}The assistant:{message}"
+
+        response = openai.Completion.create(
+            engine=model,
+            prompt=prompt,
+            max_tokens=150,
+            n=1,
+            stop=None,
+            temperature=0.7,
+        )
+
+        response_text = response.choices[0].text.strip()
+        for word in response_text.split():
+            print(word)
+            yield word
 
     def ask(self, prompt, conversation_id=None):
         try:
@@ -58,5 +90,3 @@ class ChatManager():
         pass
 
 
-openai_api = ChatManager(api_key='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')
-print(openai_api.ask('你好,说一个故事吧'))
