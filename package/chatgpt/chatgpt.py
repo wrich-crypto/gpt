@@ -49,7 +49,7 @@ class ChatManager():
         return chat_history
 
     def chat_generator(self, chat_history, message, model="text-davinci-002"):
-        openai.api_key = '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'
+        openai.api_key = self.api_key
         truncated_chat_history = self.truncate_chat_history(chat_history)
         prompt = f"{truncated_chat_history}The assistant:{message}"
 
