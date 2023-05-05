@@ -58,5 +58,5 @@ class ChatManager():
         pass
 
 
-# openai_api = ChatManager(api_key='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')
-# print(openai_api.ask('你好,说一个故事吧'))
+openai_api = ChatManager(api_key='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')
+print(openai_api.ask('你好,说一个故事吧'))
