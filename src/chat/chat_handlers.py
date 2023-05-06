@@ -7,7 +7,7 @@ from flask import Flask, request, Response, stream_with_context
 
 def create_stream_with_retry(message, channel=None, version='3.5', system='chatGPT', max_attempts=3):
     for _ in range(max_attempts):
-        if version == '3.5':
+        if version == '3.5' or version == '4':
             #
             channel_id = channel if channel and channel.strip() != "" else generate_uuid()
             stream_id = generate_uuid()
@@ -44,31 +44,55 @@ def create_stream_with_retry(message, channel=None, version='3.5', system='chatG
 def generate(session, stream_id, user_id):
     try:
         chatMessage_instance = ChatMessage.query(session, stream_id=stream_id)
+        total_token = 0
         if chatMessage_instance is not None and chatMessage_instance.version is not None\
-                and chatMessage_instance.version == '3.5':
+                and (chatMessage_instance.version == '3.5' or chatMessage_instance.version == '4'):
             #生成api_key
             access_token = hot_config.get_next_openai_api_key()
-            openai_api = ChatManager(access_token)
+            openai_model = get_model(chatMessage_instance.version)
+            openai_api = OpenAIChat(access_token, openai_model)
 
             #获取历史数据
-            chat_history = ChatMessage.get_message_history_by_channel_id(session, chatMessage_instance.channel_id)
-            response, error_msg = openai_api.ask(chat_history=chat_history, message=chatMessage_instance.question)
+            # chat_history_list = ChatMessage.get_message_history_by_channel_id(session, chatMessage_instance.channel_id)
+            chat_history_list, e = ChatMessage.query_all(session, limit=3, desc=True, channel_id=chatMessage_instance.channel_id)
+
+            if e is not None:
+                print(e)
+
+            chat_history_list = list(reversed(chat_history_list))
+
+            for chat_history in chat_history_list:
+                if chat_history.question and chat_history.question != '':
+                    total_token += len(chat_history.question)
+                    openai_api.add_message("user", chat_history.question)
+
+                if chat_history.answer and chat_history.answer != '':
+                    total_token += len(chat_history.answer)
+                    openai_api.add_message("system", chat_history.answer)
+
+            print(openai_api.messages)
+            response, error_msg = openai_api.generate_chat_response()
 
             if error_msg is not None:
                 logger.error(f'error_msg:{error_msg}')
 
             content = ''
-            if response:
-                for chunk in response:
-                    if chunk:
-                        res = OpenAIResponse(chunk)
-                        chunk_id = uuid.uuid4()
+            for chunk in response.iter_content(chunk_size=1024):
+                if chunk:
+                    decoded_chunk = chunk.decode("utf-8")
+                    # print(decoded_chunk)
+
+                    chunk_obj = DecodedOpenaiChunk(decoded_chunk)
+
+                    if chunk_obj and chunk_obj.data:
                         event_name = 'message'
-                        formatted_chunk = f"id: {chunk_id}\nevent: {event_name}\ndata: {res.text}\n\n"
-                        formatted_chunk = formatted_chunk.encode('utf-8')
-                        content = content + res.text
+                        formatted_chunk = f"id: {chunk_obj.id}\nevent: {event_name}\ndata: {chunk_obj.data}\n\n"
                         yield formatted_chunk
-            consume_token_amount = len(content) * 6
+                        content = content + chunk_obj.data
+
+            total_token += len(content)
+            print(f'cosume token:{total_token}')
+            consume_token_amount = (total_token * 6) if chatMessage_instance.version == '3.5' else total_token * 30
         else:
             access_token = hot_config.get_next_api_key()
 

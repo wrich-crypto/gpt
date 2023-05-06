@@ -16,27 +16,12 @@ class ChatMessage(BaseModel):
 
     @classmethod
     def get_message_history_by_channel_id(cls, session, channel_id):
-        message_history = ''
         query = session.query(cls).filter_by(channel_id=channel_id)
         query = query.order_by(cls.id.desc())
         query = query.limit(3)
         message_list = query.all()
         message_list = list(reversed(message_list))
-
-        for message in message_list:
-            if message.question is None or message.question == '':
-                continue
-
-            if message.answer is None or message.answer == '':
-                continue
-
-            message_history = message_history + f"User: {message.question}\n"
-            message_history = message_history + f"The assistant: {message.answer}\n"
-
-        if len(message_list) > 0:
-            message_history = message_history + '\n Answers to questions do not need to begin with "The assistant:"'
-
-        return message_history
+        return message_list
 
 class ChatChannel(BaseModel):
     __tablename__ = 'chat_channels'
