@@ -14,7 +14,7 @@ def create_stream_with_retry(message, channel=None, version='3.5', system='chatG
             return stream_id, channel_id
 
         access_token = hot_config.get_next_api_key()
-        print(access_token)
+        logger.info(access_token)
 
         if system is None:
             system = 'chatGPT'
@@ -26,7 +26,6 @@ def create_stream_with_retry(message, channel=None, version='3.5', system='chatG
 
         channel_id = channel if channel and channel.strip() != "" else generate_uuid()
         create_stream_response = chat_api.create_stream(message, channel_id, version, system)
-        print(f'create_stream_response:{create_stream_response}')
 
         if create_stream_response and str(create_stream_response["code"]) == '0':
             logger.info(f'chat gpt response: {create_stream_response}')
@@ -57,7 +56,7 @@ def generate(session, stream_id, user_id):
             chat_history_list, e = ChatMessage.query_all(session, limit=3, desc=True, channel_id=chatMessage_instance.channel_id)
 
             if e is not None:
-                print(e)
+                logger.info(e)
 
             chat_history_list = list(reversed(chat_history_list))
 
@@ -70,7 +69,6 @@ def generate(session, stream_id, user_id):
                     total_token += len(chat_history.answer)
                     openai_api.add_message("system", chat_history.answer)
 
-            print(openai_api.messages)
             response, error_msg = openai_api.generate_chat_response()
 
             if error_msg is not None:
@@ -80,19 +78,19 @@ def generate(session, stream_id, user_id):
             for chunk in response.iter_content(chunk_size=1024):
                 if chunk:
                     decoded_chunk = chunk.decode("utf-8")
-                    # print(decoded_chunk)
 
                     chunk_obj = DecodedOpenaiChunk(decoded_chunk)
 
                     if chunk_obj and chunk_obj.data:
                         event_name = 'message'
-                        formatted_chunk = f"id: {chunk_obj.id}\nevent: {event_name}\ndata: {chunk_obj.data}\n\n"
-                        yield formatted_chunk
+                        markdown_data = chunk_obj.data.replace('\\n', '<c-api-line>')   #适配uchat格式
+                        formatted_chunk = f"id: {chunk_obj.id}\nevent: {event_name}\ndata: {markdown_data}\n\n"
                         content = content + chunk_obj.data
+                        yield formatted_chunk
 
             total_token += len(content)
-            print(f'cosume token:{total_token}')
-            consume_token_amount = (total_token * 6) if chatMessage_instance.version == '3.5' else total_token * 30
+            logger.info(f'cosume token:{total_token}')
+            consume_token_amount = (total_token * 6) if chatMessage_instance.version == '3.5' else total_token * 60
         else:
             access_token = hot_config.get_next_api_key()
 

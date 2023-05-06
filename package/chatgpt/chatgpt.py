@@ -68,7 +68,23 @@ class DecodedOpenaiChunk:
         self._parse_chunk(chunk)
 
     def _parse_chunk(self, chunk: str):
-        data_match = re.search(r'content":\s*"([^"]+)', chunk)
+        data_match = re.search(r'content":\s*"((?:(?!"},"index").)+)', chunk)
         if data_match:
             self.data = data_match.group(1)
 
+    # def _parse_chunk(self, input_string):
+    #     # 去除字符串前面的 "data: "
+    #     try:
+    #         input_string = input_string.replace("data: ", "", 1)
+    #
+    #         # 将字符串解析为 Python 对象（字典）
+    #         obj = json.loads(input_string)
+    #
+    #         # 提取 id 和 data 的值
+    #         result_id = obj['id']
+    #         data_content = obj['choices'][0]['delta']['content']
+    #
+    #         self.id = result_id
+    #         self.data = data_content
+    #     except Exception as e:
+    #         print(e)
