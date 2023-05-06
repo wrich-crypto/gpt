@@ -75,7 +75,7 @@ def handle_user_registration():
 
     if instance is None:
         logger.error(f'account exist username:{username}, email:{email}, phone:{phone}, error:{e}')
-        return error_response(-1, "Invalid token")
+        return error_response(ErrorCode.ERROR_INTERNAL_SERVER, "server error")
 
     referral_user = User.query(session, referral_code=referral_code)
 
@@ -120,6 +120,11 @@ def handle_user_invite():
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'referral code empty')
 
     user = User.query(session, token=token)
+
+    if not user:
+        logger.error(f'Invalid token, auth_header:{auth_header}')
+        return error_response(ErrorCode.ERROR_TOKEN, "Invalid token")
+
     referral_user = User.query(session, referral_code=referral_code)
 
     if UserInvitation.exists(session, invitee_id=user.id):
@@ -153,11 +158,11 @@ def handle_change_password():
     user = User.query(session, token=token)
     if not user:
         logger.error(f'user not exist, token:{token}')
-        return error_response(-1, "Invalid token")
+        return error_response(ErrorCode.ERROR_TOKEN, "Invalid token")
 
     if user.password != hash_password:
         logger.error(f'password error, token:{token}, password:{password}')
-        return error_response(-1, "Invalid password")
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "Invalid password")
 
     hashed_new_password = hash_token(new_password)
     new_token = generate_token(user.username, hashed_new_password)
@@ -167,7 +172,7 @@ def handle_change_password():
         response_data = ErrorCode.success()
     else:
         logger.error(f'user not exist, token:{token}')
-        return error_response(-1, error_message)
+        return error_response(ErrorCode.ERROR_INTERNAL_SERVER, error_message)
 
     return jsonify(response_data)
 
@@ -191,7 +196,7 @@ def handle_get_phone_verification_code():
 
     sign_name = main_config.sign_name
     template_code = main_config.template_code
-    template_param = '{"code":' + str(code) + '}'
+    template_param = '{"code":"' + str(code) + '"}'
     err = sms_client.send_message(phone, sign_name, template_code, template_param)
 
     if err is not None:
@@ -230,7 +235,7 @@ def handle_get_email_verification_code():
     single_send_mail_request.account_name = 'services@aigcchina.ai'
     single_send_mail_request.to_address = email
     single_send_mail_request.subject = "验证码信息"
-    single_send_mail_request.html_body = f"<p>验证码为{str(code)}.</p>"
+    single_send_mail_request.html_body = f'<p>验证码为"{str(code)}".</p>'
     single_send_mail_request.from_alias = "gpt"
     single_send_mail_request.address_type = 1
     single_send_mail_request.reply_to_address = False
@@ -270,7 +275,7 @@ def handle_get_user_invitations():
     user = User.query(session, token=token)
     if not user:
         logger.error(f'Invalid token, auth_header:{auth_header}')
-        return error_response(-1, "Invalid token")
+        return error_response(ErrorCode.ERROR_TOKEN1, "Invalid token")
 
     offset = (int(page) - 1) * int(page_size)
     invitations, _ = UserInvitation.query_all(session, limit=int(page_size), offset=offset, inviter_id=user.id)
@@ -303,7 +308,7 @@ def handle_get_remaining_tokens():
     user = User.query(session, token=token)
     if not user:
         logger.error(f'Invalid token, auth_header:{auth_header}')
-        return error_response(-1, "Invalid token")
+        return error_response(ErrorCode.ERROR_TOKEN, "Invalid token")
 
     user_balance = UserBalance.query(session, user_id=user.id)
     if not user_balance:
@@ -337,7 +342,7 @@ def handle_payment():
     user = User.query(session, token=token)
     if not user:
         logger.error(f'Invalid token, auth_header:{auth_header}')
-        return error_response(-1, "Invalid token")
+        return error_response(ErrorCode.ERROR_TOKEN, "Invalid token")
 
     # 在此处实现支付功能，可能需要与支付服务集成
     # ...
@@ -365,7 +370,7 @@ def handle_get_user_info():
     user = User.query(session, token=token)
     if not user:
         logger.error(f'Invalid token, auth_header:{auth_header}')
-        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid token')
+        return error_response(ErrorCode.ERROR_TOKEN, 'Invalid token')
 
     user_balance = UserBalance.query(session, user_id=user.id)
     if not user_balance:
@@ -407,7 +412,7 @@ def handle_recharge():
     user = User.query(session, token=token)
     if user is None:
         logger.error(f'Invalid token, auth_header:{auth_header}')
-        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid token')
+        return error_response(ErrorCode.ERROR_TOKEN, 'Invalid token')
 
     recharge_card = RechargeCard.query(session, card_account=card_account, card_password=card_password)
 
@@ -474,7 +479,7 @@ def add_recharge_card():
     user = User.query(session, token=token)
     if user is None:
         logger.error(f'Invalid token, auth_header:{auth_header}')
-        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid token')
+        return error_response(ErrorCode.ERROR_TOKEN, 'Invalid token')
 
     created_cards = []
     for _ in range(num):
