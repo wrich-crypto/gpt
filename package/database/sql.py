@@ -100,9 +100,12 @@ class BaseModel(Base):
             return None
 
     @classmethod
-    def query_all(cls, session, limit=None, offset=0, **kwargs):
+    def query_all(cls, session, limit=None, offset=0, desc=False, **kwargs):
         try:
             query = session.query(cls).filter_by(**kwargs)
+            if desc:
+                query = query.order_by(cls.id.desc())
+
             if limit:
                 query = query.limit(limit)
             if offset:

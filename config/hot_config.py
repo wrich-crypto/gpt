@@ -30,10 +30,11 @@ class HotConfig:
         self.observer.start()
 
     def config_updated(self):
-        global api_key_cycle, ip_proxy_cycle
+        global api_key_cycle, ip_proxy_cycle, openai_api_key_cycle
         self.config = self.load_config()
         api_key_cycle = cycle(self.config["API_KEYS"])
         ip_proxy_cycle = cycle(self.config["IP_PROXIES"])
+        openai_api_key_cycle = cycle(self.config['OPENAI_API_KEYS'])
 
     @staticmethod
     def load_config():
@@ -47,6 +48,9 @@ class HotConfig:
     def get_next_proxy(self):
         return next(ip_proxy_cycle)
 
+    def get_next_openai_api_key(self):
+        return next(openai_api_key_cycle)
+
     def stop(self):
         self.observer.stop()
         self.observer.join()
@@ -54,6 +58,12 @@ class HotConfig:
     def remove_api_key(self, api_key):
         if api_key in self.config["API_KEYS"]:
             self.config["API_KEYS"].remove(api_key)
+            self.save_config()
+            self.config_updated()
+
+    def remove_openai_api_key(self, openai_api_key):
+        if openai_api_key in self.config["OPENAI_API_KEYS"]:
+            self.config["OPENAI_API_KEYS"].remove(openai_api_key)
             self.save_config()
             self.config_updated()
 

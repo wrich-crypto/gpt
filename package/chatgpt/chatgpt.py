@@ -1,40 +1,30 @@
-from langchain.chains.conversation.memory import ConversationBufferMemory
-from langchain import OpenAI, LLMChain, PromptTemplate
 import openai
+
+class OpenAIResponse:
+    def __init__(self, response_data):
+        self.choices = response_data.get('choices', [])
+        self.created = response_data.get('created')
+        self.id = response_data.get('id')
+        self.model = response_data.get('model')
+        self.object = response_data.get('object')
+        self._parse_choices()
+
+    def _parse_choices(self):
+        if self.choices:
+            choice = self.choices[0]
+            self.finish_reason = choice.get('finish_reason')
+            self.index = choice.get('index')
+            self.logprobs = choice.get('logprobs')
+            self.text = choice.get('text').strip()
+        else:
+            self.finish_reason = None
+            self.index = None
+            self.logprobs = None
+            self.text = None
 
 class ChatManager():
     def __init__(self, api_key):
-        self.channels = {}
         self.api_key = api_key
-
-    def get_channel(self, channel_id):
-        if channel_id not in self.channels:
-            self.channels[channel_id] = self.create_llm_chain(self.api_key)
-        return self.channels[channel_id]
-
-    @staticmethod
-    def create_llm_chain(api_key):
-        template = """You are a chatbot having a conversation with a human.
-
-                {chat_history}
-                Human: {human_input}
-                Chatbot:"""
-
-        prompt = PromptTemplate(
-            input_variables=["chat_history", "human_input"],
-            template=template
-        )
-        memory = ConversationBufferMemory(memory_key="chat_history")
-
-        llm_chain = LLMChain(
-            llm=OpenAI(openai_api_key=api_key, temperature=0.7),
-            prompt=prompt,
-            verbose=True,
-            memory=memory,
-            stream=True,
-        )
-
-        return llm_chain
 
     def truncate_chat_history(self, chat_history, max_tokens=4096):
         if len(chat_history) > max_tokens:
@@ -48,36 +38,25 @@ class ChatManager():
                     tokens_to_remove -= 1
         return chat_history
 
-    def chat_generator(self, chat_history, message, model="text-davinci-002"):
-        openai.api_key = self.api_key
-        truncated_chat_history = self.truncate_chat_history(chat_history)
-        prompt = f"{truncated_chat_history}The assistant:{message}"
-
-        response = openai.Completion.create(
-            engine=model,
-            prompt=prompt,
-            max_tokens=150,
-            n=1,
-            stop=None,
-            temperature=0.7,
-        )
-
-        response_text = response.choices[0].text.strip()
-        for word in response_text.split():
-            print(word)
-            yield word
-
-    def ask(self, prompt, conversation_id=None):
+    def ask(self, chat_history, message, model="text-davinci-003"):
         try:
-            llm_chain = self.get_channel(conversation_id)
-            response = llm_chain.predict(human_input=prompt)
+            openai.api_key = self.api_key
+            truncated_chat_history = self.truncate_chat_history(chat_history)
+            prompt = f"{truncated_chat_history} The assistant:{message}"
 
-            prompt_with_response = f'Human: {prompt}\nChatbot: {response}'
-            consumed_tokens = len(prompt_with_response)
+            response = openai.Completion.create(
+                engine=model,
+                prompt=prompt,
+                max_tokens=2048,
+                n=1,
+                stop=None,
+                temperature=0.6,
+                stream=True,
+            )
 
-            return response, consumed_tokens * 6, None
+            return response, None
         except Exception as e:
-            return '', 0, str(e)
+            return '', str(e)
 
     # The following methods are not implemented in ChatManager, but we have to include them as placeholders
     def create_stream(self, prompt, conversation_id=None, version='3.5', system='chatGPT'):
@@ -88,5 +67,3 @@ class ChatManager():
 
     def get_stream_consume(self, stream_id):
         pass
-
-

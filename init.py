@@ -20,6 +20,7 @@ from flask import request
 from package.sms_notify.sms import *
 from package.email_notify.email_client import *
 from package.chatgpt.uchatgpt import *
+from package.chatgpt.chatgpt import *
 from sqlalchemy import desc
 
 logger = Logger('gpt', log_to_file=True, filename='info.log')

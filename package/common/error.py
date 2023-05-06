@@ -2,13 +2,14 @@ from flask import jsonify
 
 class ErrorCode:
     SUCCESS = 0
-    ERROR_INVALID_PARAMETER = -1
+    ERROR_TOKEN = -1
     ERROR_INTERNAL_SERVER = -2
     ERROR_CODE = -3
     ERROR_ACCOUNT_OR_PASSWORD = -4
     ERROR_ACCOUNT_EXISTED = -5
     ERROR_BALANCE = -6
     ERROR_UNKNOWN = -7
+    ERROR_INVALID_PARAMETER = -8
 
     @staticmethod
     def success(data=None):

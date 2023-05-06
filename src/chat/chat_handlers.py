@@ -7,6 +7,12 @@ from flask import Flask, request, Response, stream_with_context
 
 def create_stream_with_retry(message, channel=None, version='3.5', system='chatGPT', max_attempts=3):
     for _ in range(max_attempts):
+        if version == '3.5':
+            #
+            channel_id = channel if channel and channel.strip() != "" else generate_uuid()
+            stream_id = generate_uuid()
+            return stream_id, channel_id
+
         access_token = hot_config.get_next_api_key()
         print(access_token)
 
@@ -35,33 +41,59 @@ def create_stream_with_retry(message, channel=None, version='3.5', system='chatG
     raise ValueError("Failed to create stream after maximum attempts.")
 
 @stream_with_context
-def generate(stream_id, user_id):
+def generate(session, stream_id, user_id):
     try:
-        access_token = hot_config.get_next_api_key()
-        print(access_token)
+        chatMessage_instance = ChatMessage.query(session, stream_id=stream_id)
+        if chatMessage_instance is not None and chatMessage_instance.version is not None\
+                and chatMessage_instance.version == '3.5':
+            #生成api_key
+            access_token = hot_config.get_next_openai_api_key()
+            openai_api = ChatManager(access_token)
 
-        if access_token is None or access_token.strip() == '':
-            raise ValueError("Failed to create stream after maximum attempts.")
+            #获取历史数据
+            chat_history = ChatMessage.get_message_history_by_channel_id(session, chatMessage_instance.channel_id)
+            response, error_msg = openai_api.ask(chat_history=chat_history, message=chatMessage_instance.question)
 
-        chat_api = ChatAPI(access_token)
-        stream_response = chat_api.get_stream(stream_id)
+            if error_msg is not None:
+                logger.error(f'error_msg:{error_msg}')
 
-        content = ''
-        for chunk in stream_response.iter_content(chunk_size=1024):
-            if chunk:
-                decoded_chunk = chunk.decode("utf-8")
-                decoded_chunk_obj = DecodedChunk(decoded_chunk)
+            content = ''
+            if response:
+                for chunk in response:
+                    if chunk:
+                        res = OpenAIResponse(chunk)
+                        chunk_id = uuid.uuid4()
+                        event_name = 'message'
+                        formatted_chunk = f"id: {chunk_id}\nevent: {event_name}\ndata: {res.text}\n\n"
+                        formatted_chunk = formatted_chunk.encode('utf-8')
+                        content = content + res.text
+                        yield formatted_chunk
+            consume_token_amount = len(content) * 6
+        else:
+            access_token = hot_config.get_next_api_key()
 
-                if decoded_chunk_obj.event == 'message':
-                    content = content + decoded_chunk_obj.data
-                    yield decoded_chunk
+            if access_token is None or access_token.strip() == '':
+                raise ValueError("Failed to create stream after maximum attempts.")
+
+            chat_api = ChatAPI(access_token)
+            stream_response = chat_api.get_stream(stream_id)
+
+            content = ''
+            for chunk in stream_response.iter_content(chunk_size=1024):
+                if chunk:
+                    decoded_chunk = chunk.decode("utf-8")
+                    decoded_chunk_obj = DecodedChunk(decoded_chunk)
+
+                    if decoded_chunk_obj.event == 'message':
+                        content = content + decoded_chunk_obj.data
+                        yield decoded_chunk
+
+            consume_token_amount, error_message, get_stream_consume_response = chat_api.get_stream_consume(stream_id)
+            logger.info(f'consume_token_amount:{consume_token_amount}, error_message:{error_message}, '
+                        f'get_stream_consume_response:{get_stream_consume_response}')
 
         logger.debug(content)
         new_session = session_factory()
-
-        consume_token_amount, error_message, get_stream_consume_response = chat_api.get_stream_consume(stream_id)
-        logger.info(f'consume_token_amount:{consume_token_amount}, error_message:{error_message}, '
-                    f'get_stream_consume_response:{get_stream_consume_response}')
 
         chat_message = ChatMessage.query(new_session, stream_id=stream_id)
         if chat_message:
@@ -120,13 +152,13 @@ def create_stream():
 
         if not ChatChannel.exists(new_session, channel_uuid=channel_uuid, user_id=user.id, status=status_success):
             ChatChannel.create(new_session, channel_uuid=channel_uuid, user_id=user.id, status=status_success,
-                               title=message)
+                               title=message, version=version)
 
         new_channel = ChatChannel.query(new_session, channel_uuid=channel_uuid, user_id=user.id, status=status_success)
         current_channel_index_id = new_channel.id
 
         ChatMessage.create(new_session, user_id=user.id, channel_id=current_channel_index_id, stream_id=stream_id,
-                           question=message)
+                           question=message, version=version)
 
         response_data = ErrorCode.success({"stream_id": stream_id, "channel_id": channel_uuid})
         return jsonify(response_data)
@@ -150,7 +182,7 @@ def stream():
 
         if not user:
             logger.error(f'Invalid token, auth_header:{auth_header}')
-            return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "Invalid token")
+            return error_response(ErrorCode.ERROR_TOKEN, "Invalid token")
 
         headers = {
             "Content-Type": "text/event-stream",
@@ -158,7 +190,7 @@ def stream():
             "Cache-Control": "no-cache",
             "Connection": "keep-alive",
         }
-        return Response(generate(stream_id, user.id), headers=headers)
+        return Response(generate(session, stream_id, user.id), headers=headers)
     except Exception as e:
         logger.error(f"stream error:{e}")
         return error_response(ErrorCode.ERROR_INTERNAL_SERVER, "server error")
@@ -182,7 +214,7 @@ def get_history(channel_id):
         user = User.query(session, token=token)
         if not user:
             logger.error(f'Invalid token, auth_header:{auth_header}')
-            return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "Invalid token")
+            return error_response(ErrorCode.ERROR_TOKEN, "Invalid token")
 
         new_channel = ChatChannel.query(session, channel_uuid=channel_id, user_id=user.id, status=status_success)
 
@@ -222,7 +254,7 @@ def get_channels():
 
         if not user:
             logger.error(f'Invalid token, auth_header:{auth_header}')
-            return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "Invalid token")
+            return error_response(ErrorCode.ERROR_TOKEN, "Invalid token")
 
         channels = ChatChannel.get_channels_by_user(session, user_id=user.id, status=status_success)
         channels_data = []
@@ -253,7 +285,7 @@ def delete_channel(channel_id):
         user = User.query(session, token=token)
         if not user:
             logger.error(f'Invalid token, auth_header:{auth_header}')
-            return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "Invalid token")
+            return error_response(ErrorCode.ERROR_TOKEN, "Invalid token")
 
         new_channel = ChatChannel.query(session, channel_uuid=channel_id, user_id=user.id, status=status_success)
 
