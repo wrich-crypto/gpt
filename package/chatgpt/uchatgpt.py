@@ -7,7 +7,7 @@ def generate_uuid():
     uuid4 = uuid.uuid4()
     return str(uuid4)
 
-class ChatAPI:
+class ChatAPI():
     def __init__(self, access_token, base_url="https://api.chatuapi.com"):
         self.access_token = access_token
         self.base_url = base_url
