@@ -94,7 +94,7 @@ def generate(session, stream_id, user_id):
 
             total_token += len(content)
             logger.info(f'cosume token:{total_token}')
-            consume_token_amount = (len(content) * 4) if chatMessage_instance.version == '3.5' else len(content) * 60
+            consume_token_amount = (len(content) * 2) if chatMessage_instance.version == '3.5' else len(content) * 60
         else:
             access_token = hot_config.get_next_api_key()
 
