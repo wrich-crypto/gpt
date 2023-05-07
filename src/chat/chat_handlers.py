@@ -48,6 +48,10 @@ def generate(session, stream_id, user_id):
                 and (chatMessage_instance.version == '3.5' or chatMessage_instance.version == '4'):
             #生成api_key
             access_token = hot_config.get_next_openai_api_key()
+
+            if chatMessage_instance.version == '3.5':
+                access_token = hot_config.default_key
+
             openai_model = get_model(chatMessage_instance.version)
             openai_api = OpenAIChat(access_token, openai_model)
 
