@@ -43,7 +43,8 @@ def create_stream_with_retry(message, channel=None, version='3.5', system='chatG
 def generate(session, stream_id, user_id):
     try:
         chatMessage_instance = ChatMessage.query(session, stream_id=stream_id)
-        total_token = 0
+        history_content = ''
+        #使用官方的openai库
         if chatMessage_instance is not None and chatMessage_instance.version is not None\
                 and (chatMessage_instance.version == '3.5' or chatMessage_instance.version == '4'):
             #生成api_key
@@ -66,11 +67,11 @@ def generate(session, stream_id, user_id):
 
             for chat_history in chat_history_list:
                 if chat_history.question and chat_history.question != '':
-                    total_token += len(chat_history.question)
+                    history_content = history_content + chat_history.question
                     openai_api.add_message("user", chat_history.question)
 
                 if chat_history.answer and chat_history.answer != '':
-                    total_token += len(chat_history.answer)
+                    history_content = history_content + chat_history.answer
                     openai_api.add_message("system", chat_history.answer)
 
             response, error_msg = openai_api.generate_chat_response()
@@ -92,9 +93,12 @@ def generate(session, stream_id, user_id):
                         content = content + chunk_obj.data
                         yield formatted_chunk
 
-            total_token += len(content)
-            logger.info(f'cosume token:{total_token}')
-            consume_token_amount = (len(content) * 2) if chatMessage_instance.version == '3.5' else len(content) * 60
+            openai_api.add_message("system", content)
+
+            consume_token_amount = num_tokens_from_messages(openai_api.messages, openai_model)
+            consume_token_amount = consume_token_amount * 75 if chatMessage_instance.version == '4' else consume_token_amount * 2.5
+            print(f'consume token:{consume_token_amount}')
+        #使用uchat
         else:
             access_token = hot_config.get_next_api_key()
 
