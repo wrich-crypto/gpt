@@ -58,7 +58,8 @@ def generate(session, stream_id, user_id):
 
             #获取历史数据
             # chat_history_list = ChatMessage.get_message_history_by_channel_id(session, chatMessage_instance.channel_id)
-            chat_history_list, e = ChatMessage.query_all(session, limit=3, desc=True, channel_id=chatMessage_instance.channel_id)
+            limit_num = 3 if chatMessage_instance.using_context == using_context_open else 1
+            chat_history_list, e = ChatMessage.query_all(session, limit=limit_num, desc=True, channel_id=chatMessage_instance.channel_id)
 
             if e is not None:
                 logger.info(e)
@@ -172,6 +173,7 @@ def create_stream():
         timestamp = data.get('timestamp')
         extras = data.get('extras')
         version = data.get('version')
+        using_context = data.get('using_context')
         system = 'chatGPT'
 
         if balance_valid(new_session, user.id) is False:
@@ -187,8 +189,10 @@ def create_stream():
         new_channel = ChatChannel.query(new_session, channel_uuid=channel_uuid, user_id=user.id, status=status_success)
         current_channel_index_id = new_channel.id
 
+        using_context_status = using_context_open if using_context is True else using_context_stop
+        print(f'using_context:{using_context} using_context_status:{using_context_status}')
         ChatMessage.create(new_session, user_id=user.id, channel_id=current_channel_index_id, stream_id=stream_id,
-                           question=message, version=version)
+                           question=message, version=version, using_context=using_context_status)
 
         response_data = ErrorCode.success({"stream_id": stream_id, "channel_id": channel_uuid})
         return jsonify(response_data)

@@ -2,6 +2,9 @@ from init import *
 from sqlalchemy import desc
 import tiktoken
 
+using_context_open = 1
+using_context_stop = 2
+
 class ChatMessage(BaseModel):
     __tablename__ = 'chat_messages'
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -10,7 +13,8 @@ class ChatMessage(BaseModel):
     message_id = Column(String(100), nullable=False)
     stream_id = Column(String(100), nullable=False)
     question = Column(Text, nullable=False)
-    answer = Column(Text,nullable=False)
+    answer = Column(Text, nullable=False)
+    using_context = Column(Integer, nullable=False)
     tokens_consumed = Column(DECIMAL(10, 2), nullable=False)
     version = Column(String(10), nullable=False)
     created_at = Column(TIMESTAMP, default='CURRENT_TIMESTAMP', nullable=False)
