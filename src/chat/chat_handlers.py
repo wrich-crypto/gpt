@@ -4,6 +4,7 @@ from .chat_module import *
 from ..user.user_module import *
 import json
 from flask import Flask, request, Response, stream_with_context
+from src.admin.admin_module import ApiKeys
 
 def create_stream_with_retry(message, channel=None, version='3.5', system='chatGPT', max_attempts=3):
     for _ in range(max_attempts):
@@ -44,15 +45,19 @@ def generate(session, stream_id, user_id):
     try:
         chatMessage_instance = ChatMessage.query(session, stream_id=stream_id)
         history_content = ''
+
+        supplier = DevConfig.get_supplier(session)
+
+        if chatMessage_instance is not None and chatMessage_instance.version is not None:
+            model_type = DevConfig.get_model_type_by_version(chatMessage_instance.version)
+        else:
+            model_type = '3.5'
+
+        access_token = ApiKeys.get_random_key(session, supplier=supplier, model_type=model_type)
+        print(access_token)
         #使用官方的openai库
-        if chatMessage_instance is not None and chatMessage_instance.version is not None\
+        if supplier == SUPPLIER_TYPE_OPENAI and chatMessage_instance is not None and chatMessage_instance.version is not None\
                 and (chatMessage_instance.version == '3.5' or chatMessage_instance.version == '4'):
-            #生成api_key
-            access_token = hot_config.get_next_openai_api_key()
-
-            if chatMessage_instance.version == '3.5':
-                access_token = hot_config.default_key
-
             openai_model = get_model(chatMessage_instance.version)
             openai_api = OpenAIChat(access_token, openai_model)
 
@@ -100,8 +105,8 @@ def generate(session, stream_id, user_id):
             consume_token_amount = consume_token_amount * 75 if chatMessage_instance.version == '4' else consume_token_amount * 2.5
             print(f'consume token:{consume_token_amount}')
         #使用uchat
-        else:
-            access_token = hot_config.get_next_api_key()
+        elif supplier == SUPPLIER_TYPE_UCHAT:
+            # access_token = hot_config.get_next_api_key()
 
             if access_token is None or access_token.strip() == '':
                 raise ValueError("Failed to create stream after maximum attempts.")
@@ -122,6 +127,9 @@ def generate(session, stream_id, user_id):
             consume_token_amount, error_message, get_stream_consume_response = chat_api.get_stream_consume(stream_id)
             logger.info(f'consume_token_amount:{consume_token_amount}, error_message:{error_message}, '
                         f'get_stream_consume_response:{get_stream_consume_response}')
+        else:
+            logger.error(f'supplier error: {supplier}')
+            yield f"data: {json.dumps(error_response(ErrorCode.ERROR_INTERNAL_SERVER, 'Internal server error'))}\n\n"
 
         logger.debug(content)
         new_session = session_factory()
@@ -129,7 +137,8 @@ def generate(session, stream_id, user_id):
         chat_message = ChatMessage.query(new_session, stream_id=stream_id)
         if chat_message:
             success, error_message = ChatMessage.update(new_session, {"stream_id": stream_id},
-                                                 {"answer": content, "tokens_consumed": consume_token_amount})
+                                                 {"answer": content, "tokens_consumed": consume_token_amount,
+                                                  "api_key": access_token})
             if error_message:
                 logger.info(f'generate ChatMessage.update stream_id:{stream_id} error:{error_message} success:{success}')
             else:
@@ -144,6 +153,7 @@ def generate(session, stream_id, user_id):
                 logger.info(f'generate - update_user_consumed user_id:{user_id} consume_token_amount : '
                             f'{consume_token_amount} success')
 
+        update_api_key_tokens(new_session, api_key=access_token)
         new_session.close()
 
     except Exception as e:
@@ -183,8 +193,11 @@ def create_stream():
         stream_id, channel_uuid = create_stream_with_retry(message, channel_uuid, str(version), system=system)
 
         if not ChatChannel.exists(new_session, channel_uuid=channel_uuid, user_id=user.id, status=status_success):
-            ChatChannel.create(new_session, channel_uuid=channel_uuid, user_id=user.id, status=status_success,
+            _, e = ChatChannel.create(new_session, channel_uuid=channel_uuid, user_id=user.id, status=status_success,
                                title=message, version=version)
+
+            if e is not None:
+                logger.error(f'create_stream ChatChannel.create error:{e}')
 
         new_channel = ChatChannel.query(new_session, channel_uuid=channel_uuid, user_id=user.id, status=status_success)
         current_channel_index_id = new_channel.id

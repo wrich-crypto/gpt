@@ -1,4 +1,5 @@
 from init import *
+from src.admin.admin_module import DevConfig
 
 recharge_method_pay = 1
 recharge_method_invite = 2
@@ -17,9 +18,16 @@ verification_type_phone = 2
 recharge_card_status_normal = 1
 recharge_card_status_used = 2
 
+user_role_normal = 1
+user_role_manager = 2
+
+status_normal = 1
+status_delete = 2
+
 class User(BaseModel):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True, autoincrement=True)
+
     username = Column(String(50), unique=True, nullable=False)
     password = Column(String(255), nullable=False)
     email = Column(String(100), unique=True, nullable=False)
@@ -27,7 +35,29 @@ class User(BaseModel):
     token = Column(String(100), index=True, nullable=True)
     invitation_code = Column(String(20), unique=True, nullable=False)
     referral_code = Column(String(20), unique=True, nullable=False)
-    created_at = Column(TIMESTAMP, default='CURRENT_TIMESTAMP', nullable=False)
+
+    bind_phone = Column(Integer, nullable=True)
+    card_count = Column(Integer, nullable=True)
+    points = Column(Integer, nullable=True)
+    used_points = Column(Integer, nullable=True)
+    remaining_points = Column(Integer, nullable=True)
+    source = Column(String(255), nullable=True)
+    remarks = Column(String(255), nullable=True)
+    role = Column(Integer, default=user_role_normal)
+    status = Column(Integer, default=status_normal)
+    created_at = Column(DateTime, default=datetime.datetime.now(), nullable=False)
+
+    @classmethod
+    def update_user_source(cls, session, user_id, source):
+        try:
+            user = session.query(cls).get(user_id)
+            if user:
+                user.source = source
+                session.commit()
+
+            return None
+        except Exception as e:
+            return e
 
 class UserInvitation(BaseModel):
     __tablename__ = 'user_invitations'
@@ -36,7 +66,7 @@ class UserInvitation(BaseModel):
     inviter_reward = Column(DECIMAL(10, 2), nullable=False)
     invitee_id = Column(Integer, nullable=False)
     invitee_reward = Column(DECIMAL(10, 2), nullable=False)
-    created_at = Column(TIMESTAMP, default='CURRENT_TIMESTAMP', nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.now(), nullable=False)
 
 class UserBalance(BaseModel):
     __tablename__ = 'user_balances'
@@ -44,7 +74,7 @@ class UserBalance(BaseModel):
     user_id = Column(Integer, nullable=False)
     total_recharge = Column(DECIMAL(20, 2), nullable=False)
     consumed_amount = Column(DECIMAL(20, 2), nullable=False)
-    created_at = Column(TIMESTAMP, default='CURRENT_TIMESTAMP', nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.now(), nullable=False)
 
 class UserRecharge(BaseModel):
     __tablename__ = 'user_recharges'
@@ -54,7 +84,7 @@ class UserRecharge(BaseModel):
     amount = Column(DECIMAL(20, 2), nullable=False)
     recharge_method = Column(Integer, nullable=False)           #1支付通道 2邀请
     status = Column(Integer, nullable=False)                    #1成功 2失败
-    created_at = Column(TIMESTAMP, default='CURRENT_TIMESTAMP', nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.now(), nullable=False)
 
     @classmethod
     def total_pay_amount(cls, session):
@@ -65,6 +95,16 @@ class UserRecharge(BaseModel):
             return None, str(e)
         except Exception as e:
             return None, str(e)
+
+    @classmethod
+    def count_recharge_method(cls, session, user_id):
+        try:
+            count = session.query(cls).filter(cls.user_id == user_id, cls.recharge_method == recharge_method_card).count()
+            return count, None
+        except SQLAlchemyError as e:
+            return 0, str(e)
+        except Exception as e:
+            return 0, str(e)
 
 class VerificationCode(BaseModel):
     __tablename__ = 'verification_code'
@@ -78,27 +118,36 @@ class VerificationCode(BaseModel):
 
 class RechargeCard(BaseModel):
     __tablename__ = 'recharge_cards'
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     card_account = Column(String(20), unique=True, nullable=False)
     card_password = Column(String(20), nullable=False)
+    create_time = Column(DateTime, default=datetime.datetime.now(), nullable=False)
+    expire_time = Column(DateTime, nullable=True)
+    total_points = Column(Integer, nullable=True)
+    used_points = Column(Integer, nullable=True)
+    bound_user = Column(String(255), nullable=True)
+    recharge_type = Column(String(50), nullable=True)
     recharge_amount = Column(DECIMAL(20, 2), nullable=False)
     status = Column(Integer, nullable=False, default=1)  # 1未使用, 2已使用
     recharge_time = Column(DateTime, nullable=True)
-    created_at = Column(TIMESTAMP, default='CURRENT_TIMESTAMP', nullable=False)
 
-def update_recharge_card_status(session, card_account, status=recharge_card_status_used):
+def update_recharge_card_status(session, card_account, status=recharge_card_status_used, username=''):
     return RechargeCard.update(session, {'card_account': card_account},
-                       {'status': status})
+                       {'status': status, 'bound_user': username})
 
-def get_reward(inviter_recharge, invitee_recharge):
+def get_reward(session, inviter_recharge, invitee_recharge):
+    invite_token_count = DevConfig.get_invite_token_count(session)
+    recharge_token_count = 20000
+
     if inviter_recharge is True and invitee_recharge is True:
-        return 40000, 40000
+        return (recharge_token_count + invite_token_count), (recharge_token_count + invite_token_count)
     elif inviter_recharge is False and invitee_recharge is True:
-        return 20000, 40000
+        return invite_token_count, (recharge_token_count + invite_token_count)
     elif inviter_recharge is True and invitee_recharge is False:
-        return 40000, 20000
+        return (recharge_token_count + invite_token_count), invite_token_count
     elif inviter_recharge is False and invitee_recharge is False:
-        return 20000, 20000
+        return invite_token_count, invite_token_count
 
 def update_user_balance(session, user_id, reward):
     userBalance = UserBalance.query(session, user_id=user_id)
@@ -118,6 +167,24 @@ def update_user_balance(session, user_id, reward):
         logger.error(f'user_id:{user_id} update_balance_amount:{reward} error:{e}')
         return False
 
+    card_count, e = UserRecharge.count_recharge_method(session, user_id)
+
+    if e is not None:
+        logger.error(f'user_id:{user_id} UserRecharge.count_recharge_method:{reward} error:{e}')
+
+    user = User.query(session, id=user_id)
+
+    if user is None:
+        return False
+
+    result, e = user.update(session, {'id': user_id},
+                {'points': total_recharge, 'used_points': consumed_amount,
+                 'remaining_points': total_recharge - consumed_amount, 'card_count': card_count})
+
+    if result is False:
+        logger.error(f'user_id:{user_id} update user balance:{(total_recharge - consumed_amount)} error:{e}')
+        return False
+
     return True
 
 def update_user_consumed(session, user_id, consumed_amount):
@@ -133,6 +200,22 @@ def update_user_consumed(session, user_id, consumed_amount):
 
     if result is False:
         logger.error(f'user_id:{user_id} update_user_consumed:{(consumed_amount + current_consumed_amount)} error:{e}')
+        return False
+
+    #points = Column(Integer, nullable=True)
+    #used_points = Column(Integer, nullable=True)
+    #remaining_points = Column(Integer, nullable=True)
+    user = User.query(session, id=user_id)
+
+    if user is None:
+        return False
+
+    result, e = user.update(session, {'id': user_id},
+                {'points': userBalance.total_recharge, 'used_points': userBalance.consumed_amount + consumed_amount,
+                 'remaining_points': userBalance.total_recharge - userBalance.consumed_amount - consumed_amount})
+
+    if result is False:
+        logger.error(f'user_id:{user_id} update:{(consumed_amount + current_consumed_amount)} error:{e}')
         return False
 
     return True
@@ -151,7 +234,7 @@ def balance_valid(session, user_id):
 def generate_invication(session, inviter_id, invitee_id):
     inviter_recharge = UserRecharge.exists(session, user_id=inviter_id, recharge_method=recharge_method_pay)
     invitee_recharge = UserRecharge.exists(session, user_id=invitee_id, recharge_method=recharge_method_pay)
-    inviter_reward, invitee_reward = get_reward(inviter_recharge, invitee_recharge)
+    inviter_reward, invitee_reward = get_reward(session, inviter_recharge, invitee_recharge)
 
     instance, e =UserInvitation.create(session, inviter_id=inviter_id, invitee_id=invitee_id,
                                        inviter_reward=inviter_reward, invitee_reward=invitee_reward)

@@ -25,6 +25,9 @@ def handle_user_login():
         logger.error(f'handle_user_login User.query, username:{username} password error, token invalid')
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'password error')
 
+    source = request.host
+    User.update_user_source(session, user.id, source)
+
     response_data = ErrorCode.success({'token': token})
     return jsonify(response_data)
 
@@ -69,9 +72,13 @@ def handle_user_registration():
         logger.error(f'account exist username:{username}, email:{email}, phone:{phone}')
         return error_response(error_code=ErrorCode.ERROR_INVALID_PARAMETER, message='account exist')
 
+    bind_phone = status_success
+    if phone is None or phone == '':
+        bind_phone = status_failed
+
     self_referral_code = generate_referral_code()
     instance, e = User.create(session, username=username, password=hash_password, email=email,
-                phone=phone, referral_code=self_referral_code, token=token)
+                phone=phone, referral_code=self_referral_code, token=token, bind_phone=bind_phone)
 
     if instance is None:
         logger.error(f'account exist username:{username}, email:{email}, phone:{phone}, error:{e}')
@@ -82,7 +89,7 @@ def handle_user_registration():
     if referral_user is not None and referral_user.id > 0:
         generate_invication(session, referral_user.id, instance.id)
 
-    token_amount = 10000
+    token_amount = DevConfig.get_free_token_count(session)
     user_id = instance.id
     instance, e = UserRecharge.create(session, user_id=user_id, amount=token_amount, pay_amount=0,
                                       recharge_method=recharge_method_register, status=status_success)
@@ -275,7 +282,7 @@ def handle_get_user_invitations():
     user = User.query(session, token=token)
     if not user:
         logger.error(f'Invalid token, auth_header:{auth_header}')
-        return error_response(ErrorCode.ERROR_TOKEN1, "Invalid token")
+        return error_response(ErrorCode.ERROR_TOKEN, "Invalid token")
 
     offset = (int(page) - 1) * int(page_size)
     invitations, _ = UserInvitation.query_all(session, limit=int(page_size), offset=offset, inviter_id=user.id)
@@ -424,7 +431,7 @@ def handle_recharge():
         logger.error(f'handle_recharge update_user_balance, card_account:{card_account} '
                      f'card_password:{card_password} recharge_card.recharge_amount:{recharge_card.recharge_amount}')
 
-    ret, err = update_recharge_card_status(session, recharge_card.card_account, recharge_card_status_used)
+    ret, err = update_recharge_card_status(session, recharge_card.card_account, recharge_card_status_used, user.username)
     if err:
         logger.error(f'handle_recharge update_recharge_card_status error:{err}')
 
