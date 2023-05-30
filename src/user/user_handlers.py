@@ -366,7 +366,7 @@ def handle_payment_notify():
     out_trade_no = g.data.get('out_trade_no')
     amount = g.data.get('amount')
 
-    order_instance = Order.query(session, trade_no=out_trade_no)
+    order_instance = Order.query(session, trade_no=out_trade_no, status=order_status_pending)
     if not order_instance:
         logger.error(f'Invalid out_trade_no, out_trade_no:{out_trade_no}')
         return error_response(ErrorCode.ERROR_INTERNAL_SERVER, "Invalid out_trade_no")
