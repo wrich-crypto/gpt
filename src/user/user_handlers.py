@@ -331,6 +331,10 @@ def handle_get_remaining_tokens():
 def handle_payment():
     session = g.session
     logger.info('update_user_balance')
+    amount = int(g.data.get('amount'))
+    open_id = g.data.get('open_id')
+
+    order_type = int(g.data.get('order_type'))
 
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
@@ -339,14 +343,10 @@ def handle_payment():
 
     token = auth_header[7:]
 
-    amount = g.data.get('amount')
     if amount is None or amount == '':
         logger.error(f'Invalid amount, amount:{amount}')
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid amount')
 
-    amount = int(amount)
-    order_type = int(g.data.get('amount'))
-    open_id = g.data.get('open_id')
 
     user = User.query(session, token=token)
     if not user:
