@@ -10,6 +10,7 @@ class Config:
 
         self.server = config['server']
         self.port = config['port']
+        self.pay_server_domain = config['pay_server_domain']
         self.access_key_id = config['access_key_id']
         self.access_key_secret = config['access_key_secret']
         self.sign_name = config['sign_name']

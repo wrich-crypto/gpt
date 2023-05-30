@@ -63,7 +63,7 @@ def generate(session, stream_id, user_id):
 
             #获取历史数据
             # chat_history_list = ChatMessage.get_message_history_by_channel_id(session, chatMessage_instance.channel_id)
-            limit_num = 3 if chatMessage_instance.using_context == using_context_open else 1
+            limit_num = 2 if chatMessage_instance.using_context == using_context_open else 1
             chat_history_list, e = ChatMessage.query_all(session, limit=limit_num, desc=True, channel_id=chatMessage_instance.channel_id)
 
             if e is not None:
@@ -95,6 +95,8 @@ def generate(session, stream_id, user_id):
                     if chunk_obj and chunk_obj.data:
                         event_name = 'message'
                         markdown_data = chunk_obj.data.replace('\\n', '<c-api-line>')   #适配uchat格式
+                        markdown_data = markdown_data.replace('\\"', '\"')   #适配uchat格式
+                        markdown_data = markdown_data.replace('\\', '\'')   #适配uchat格式
                         formatted_chunk = f"id: {chunk_obj.id}\nevent: {event_name}\ndata: {markdown_data}\n\n"
                         content = content + chunk_obj.data
                         yield formatted_chunk
@@ -102,7 +104,7 @@ def generate(session, stream_id, user_id):
             openai_api.add_message("system", content)
 
             consume_token_amount = num_tokens_from_messages(openai_api.messages, openai_model)
-            consume_token_amount = consume_token_amount * 75 if chatMessage_instance.version == '4' else consume_token_amount * 2.5
+            consume_token_amount = consume_token_amount * 50 if chatMessage_instance.version == '4' else consume_token_amount * 2.5
             print(f'consume token:{consume_token_amount}')
         #使用uchat
         elif supplier == SUPPLIER_TYPE_UCHAT:

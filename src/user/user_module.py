@@ -24,6 +24,14 @@ user_role_manager = 2
 status_normal = 1
 status_delete = 2
 
+order_status_success = 1
+order_status_pending = 2
+order_status_error = 3
+
+order_pay_type_native = 1
+order_pay_type_jsapi = 2
+order_pay_type_h5 = 3
+
 class User(BaseModel):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -58,6 +66,32 @@ class User(BaseModel):
             return None
         except Exception as e:
             return e
+
+class Order(BaseModel):
+    __tablename__ = 'user_orders'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    trade_no = Column(String(100), nullable=False)
+    user_id = Column(Integer, nullable=False)
+    order_type = Column(Integer, nullable=False, default=1)     #默认1微信支付native 2微信支付jsapi 3微信支付h5
+    amount = Column(DECIMAL(10, 2), nullable=False)
+    status = Column(Integer, nullable=False, default=1) #默认1表示正常 2表示订单执行中 3表示订单失败
+    created_at = Column(DateTime, default=datetime.datetime.now(), nullable=False)
+
+
+    @classmethod
+    def update_status_to_normal(cls, session, order_id, status=order_status_success):
+        """
+        Update the status of an order to normal (1).
+
+        :param session: The database session to use for the update.
+        :param order_id: The ID of the order to update.
+        """
+        order = session.query(cls).filter_by(id=order_id).first()
+        if order:
+            order.status = status
+            session.commit()
+        else:
+            raise ValueError(f"Order with ID {order_id} not found")
 
 class UserInvitation(BaseModel):
     __tablename__ = 'user_invitations'
@@ -320,3 +354,77 @@ def user_verification(session, registration_type, verification_code, email, phon
         return False, f'verification code error, send verification code again'
 
     return True, ''
+
+def request_pay_by_type(session, order_type, amount, user_id, open_id=None):
+    if order_type == order_pay_type_native:
+        code, msg, out_trade_no, amount = request_pay(amount)
+        instance, error_msg = Order.create(session, trade_no=out_trade_no, user_id=user_id,
+                                           order_type=order_pay_type_jsapi,
+                                           amount=amount, status=order_status_pending)
+
+        if error_msg is not None:
+            logger.error(f'Order.create, error_msg:{error_msg}')
+            return error_response(ErrorCode.ERROR_INTERNAL_SERVER, "Order.create error")
+
+        response_data = ErrorCode.success({'code': code, 'msg': msg})
+        return response_data
+    elif order_type == order_pay_type_jsapi:
+        reason, out_trade_no, amount = request_pay_jsapi(amount, open_id)
+        instance, error_msg = Order.create(session, trade_no=out_trade_no, user_id=user_id,
+                                           order_type=order_pay_type_jsapi,
+                                           amount=amount, status=order_status_pending)
+
+        if error_msg is not None:
+            logger.error(f'Order.create, error_msg:{error_msg}')
+            return error_response(ErrorCode.ERROR_INTERNAL_SERVER, "Order.create error")
+
+        response_data = ErrorCode.success({'reason': reason})
+        return response_data
+    elif order_type == order_pay_type_h5:
+        reason, out_trade_no, amount = request_pay_h5(amount)
+        instance, error_msg = Order.create(session, trade_no=out_trade_no, user_id=user_id,
+                                           order_type=order_pay_type_jsapi,
+                                           amount=amount, status=order_status_pending)
+
+        if error_msg is not None:
+            logger.error(f'Order.create, error_msg:{error_msg}')
+            return error_response(ErrorCode.ERROR_INTERNAL_SERVER, "Order.create error")
+
+        response_data = ErrorCode.success({'reason': reason})
+        return response_data
+
+def request_pay(amount):
+    url = f"{main_config.pay_server_domain}/pay?amount={amount}"
+    response = requests.get(url)
+    if response.status_code == 200:
+        data = json.loads(response.text)
+        if data.get('code') in range(200, 300):
+            return data.get('code'), data.get('message'), data.get('out_trade_no'), data.get('amount')
+        else:
+            return None, "Error: " + data.get('message'), None, None
+    else:
+        return None, "Error: request failed", None, None
+
+def request_pay_jsapi(amount, open_id):
+    url = f"{main_config.pay_server_domain}/pay_jsapi?amount={amount}&open_id={open_id}"
+    response = requests.get(url)
+    if response.status_code == 200:
+        data = json.loads(response.text)
+        if data.get('code') == 0:
+            return data.get('result'), data.get('out_trade_no'), data.get('amount')
+        else:
+            return "Error: " + data.get('result')['reason'], None, None
+    else:
+        return "Error: request failed", None, None
+
+def request_pay_h5(amount):
+    url = f"{main_config.pay_server_domain}/pay_h5?amount={amount}"
+    response = requests.get(url)
+    if response.status_code == 200:
+        data = json.loads(response.text)
+        if data.get('code') in range(200, 300):
+            return data.get('code'), data.get('message'), data.get('out_trade_no'), data.get('amount')
+        else:
+            return None, "Error: " + data.get('message'), None, None
+    else:
+        return None, "Error: request failed", None, None

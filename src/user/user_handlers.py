@@ -345,22 +345,53 @@ def handle_payment():
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid amount')
 
     amount = int(amount)
+    order_type = int(g.data.get('amount'))
+    open_id = g.data.get('open_id')
 
     user = User.query(session, token=token)
     if not user:
         logger.error(f'Invalid token, auth_header:{auth_header}')
         return error_response(ErrorCode.ERROR_TOKEN, "Invalid token")
 
-    # 在此处实现支付功能，可能需要与支付服务集成
-    # ...
+    response_data = request_pay_by_type(session, order_type, amount, user.id, open_id)
+    return jsonify(response_data)
 
-    token_amount = amount * 10000
+@user_bp.route('/pay/notify', methods=['POST'])
+def handle_payment_notify():
+    session = g.session
+    logger.info('handle_payment notify')
+
+    #获取订单号
+    #获取user_id
+    out_trade_no = g.data.get('out_trade_no')
+    order_instance = Order.query(session, trade_no=out_trade_no)
+    if not order_instance:
+        logger.error(f'Invalid out_trade_no, out_trade_no:{out_trade_no}')
+        return error_response(ErrorCode.ERROR_INTERNAL_SERVER, "Invalid out_trade_no")
+
+    user_id = order_instance.user_id
+
+    amount = g.data.get('amount')
+    if amount is None or amount == '':
+        logger.error(f'Invalid amount, amount:{amount}')
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid amount')
+
+    amount = int(amount)
+
+    user = User.query(session, id=user_id)
+    if not user:
+        logger.error(f'Invalid user_id, user_id:{user_id}')
+        return error_response(ErrorCode.ERROR_INTERNAL_SERVER, "Invalid user_id")
+
+    token_amount = amount * 100
     instance, e = UserRecharge.create(session, user_id=user.id, amount=token_amount, pay_amount=amount,
                                       recharge_method=recharge_method_pay, status=status_success)
     if instance is None:
         logger.error(f'UserRecharge.create inviter_id:{user.id} error:{e}')
 
     update_user_balance(session, user.id, token_amount)
+
+    Order.update_status_to_normal(session, order_instance.id)
 
     response_data = ErrorCode.success()
     return jsonify(response_data)
