@@ -364,6 +364,8 @@ def handle_payment_notify():
     #获取订单号
     #获取user_id
     out_trade_no = g.data.get('out_trade_no')
+    amount = g.data.get('amount')
+
     order_instance = Order.query(session, trade_no=out_trade_no)
     if not order_instance:
         logger.error(f'Invalid out_trade_no, out_trade_no:{out_trade_no}')
@@ -371,7 +373,6 @@ def handle_payment_notify():
 
     user_id = order_instance.user_id
 
-    amount = g.data.get('amount')
     if amount is None or amount == '':
         logger.error(f'Invalid amount, amount:{amount}')
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid amount')

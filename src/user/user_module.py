@@ -54,6 +54,8 @@ class User(BaseModel):
     role = Column(Integer, default=user_role_normal)
     status = Column(Integer, default=status_normal)
     created_at = Column(DateTime, default=datetime.datetime.now(), nullable=False)
+    createTime = Column(DateTime, default=datetime.datetime.now(), nullable=False)
+    updateTime = Column(DateTime, default=datetime.datetime.now(), nullable=False)
 
     @classmethod
     def update_user_source(cls, session, user_id, source):
@@ -119,6 +121,8 @@ class UserRecharge(BaseModel):
     recharge_method = Column(Integer, nullable=False)           #1支付通道 2邀请
     status = Column(Integer, nullable=False)                    #1成功 2失败
     created_at = Column(DateTime, default=datetime.datetime.now(), nullable=False)
+    createTime = Column(DateTime, default=datetime.datetime.now(), nullable=False)
+    updateTime = Column(DateTime, default=datetime.datetime.now(), nullable=False)
 
     @classmethod
     def total_pay_amount(cls, session):
@@ -156,7 +160,6 @@ class RechargeCard(BaseModel):
     id = Column(Integer, primary_key=True, autoincrement=True)
     card_account = Column(String(20), unique=True, nullable=False)
     card_password = Column(String(20), nullable=False)
-    create_time = Column(DateTime, default=datetime.datetime.now(), nullable=False)
     expire_time = Column(DateTime, nullable=True)
     total_points = Column(Integer, nullable=True)
     used_points = Column(Integer, nullable=True)
@@ -165,6 +168,7 @@ class RechargeCard(BaseModel):
     recharge_amount = Column(DECIMAL(20, 2), nullable=False)
     status = Column(Integer, nullable=False, default=1)  # 1未使用, 2已使用
     recharge_time = Column(DateTime, nullable=True)
+    create_time = Column(DateTime, default=datetime.datetime.now(), nullable=False)
 
 def update_recharge_card_status(session, card_account, status=recharge_card_status_used, username=''):
     return RechargeCard.update(session, {'card_account': card_account},
