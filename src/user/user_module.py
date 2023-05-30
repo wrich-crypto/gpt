@@ -362,40 +362,29 @@ def user_verification(session, registration_type, verification_code, email, phon
 def request_pay_by_type(session, order_type, amount, user_id, open_id=None):
     if order_type == order_pay_type_native:
         code, msg, out_trade_no, amount = request_pay(amount)
-        instance, error_msg = Order.create(session, trade_no=out_trade_no, user_id=user_id,
-                                           order_type=order_pay_type_jsapi,
-                                           amount=amount, status=order_status_pending)
-
-        if error_msg is not None:
-            logger.error(f'Order.create, error_msg:{error_msg}')
-            return error_response(ErrorCode.ERROR_INTERNAL_SERVER, "Order.create error")
-
         response_data = ErrorCode.success({'code': code, 'msg': msg})
-        return response_data
+
     elif order_type == order_pay_type_jsapi:
         reason, out_trade_no, amount = request_pay_jsapi(amount, open_id)
-        instance, error_msg = Order.create(session, trade_no=out_trade_no, user_id=user_id,
-                                           order_type=order_pay_type_jsapi,
-                                           amount=amount, status=order_status_pending)
-
-        if error_msg is not None:
-            logger.error(f'Order.create, error_msg:{error_msg}')
-            return error_response(ErrorCode.ERROR_INTERNAL_SERVER, "Order.create error")
-
         response_data = ErrorCode.success({'reason': reason})
-        return response_data
+
     elif order_type == order_pay_type_h5:
-        reason, out_trade_no, amount = request_pay_h5(amount)
-        instance, error_msg = Order.create(session, trade_no=out_trade_no, user_id=user_id,
-                                           order_type=order_pay_type_jsapi,
-                                           amount=amount, status=order_status_pending)
+        code, reason, out_trade_no, amount = request_pay_h5(amount)
+        response_data = ErrorCode.success({ 'code': code, 'reason': reason})
 
-        if error_msg is not None:
-            logger.error(f'Order.create, error_msg:{error_msg}')
-            return error_response(ErrorCode.ERROR_INTERNAL_SERVER, "Order.create error")
+    else:
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "Order.create error")
 
-        response_data = ErrorCode.success({'reason': reason})
-        return response_data
+
+    instance, error_msg = Order.create(session, trade_no=out_trade_no, user_id=user_id,
+                                       order_type=order_type,
+                                       amount=amount, status=order_status_pending)
+
+    if error_msg is not None:
+        logger.error(f'Order.create, error_msg:{error_msg}')
+        return error_response(ErrorCode.ERROR_INTERNAL_SERVER, "Order.create error")
+
+    return response_data
 
 def request_pay(amount):
     url = f"{main_config.pay_server_domain}/pay?amount={amount}"
