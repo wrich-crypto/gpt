@@ -25,9 +25,6 @@ def handle_user_login():
         logger.error(f'handle_user_login User.query, username:{username} password error, token invalid')
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'password error')
 
-    source = request.host
-    User.update_user_source(session, user.id, source)
-
     response_data = ErrorCode.success({'token': token})
     return jsonify(response_data)
 
@@ -77,13 +74,16 @@ def handle_user_registration():
         bind_phone = status_failed
 
     self_referral_code = generate_referral_code()
+    source = request.host
     instance, e = User.create(session, username=username, password=hash_password, email=email,
-                phone=phone, referral_code=self_referral_code, token=token, bind_phone=bind_phone)
+                phone=phone, referral_code=self_referral_code, token=token, bind_phone=bind_phone,
+                source=source, invitation_code=referral_code)
 
     if instance is None:
         logger.error(f'account exist username:{username}, email:{email}, phone:{phone}, error:{e}')
         return error_response(ErrorCode.ERROR_INTERNAL_SERVER, "server error")
 
+    referral_code = init_referral_code(session, source) if referral_code is None or referral_code == "" else referral_code
     referral_user = User.query(session, referral_code=referral_code)
 
     if referral_user is not None and referral_user.id > 0:

@@ -170,6 +170,29 @@ class RechargeCard(BaseModel):
     recharge_time = Column(DateTime, nullable=True)
     create_time = Column(DateTime, default=datetime.datetime.now(), nullable=False)
 
+class Agent(BaseModel):
+    __tablename__ = 'agent'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    title = Column(String(100), comment='标题')
+    slogan = Column(String(100), comment='广告语')
+    ai_name = Column(String(50), comment='AI名字')
+    wechat_qr_code = Column(String(255), comment='微信二维码')
+    customer_service_phone = Column(String(20), comment='客服电话')
+    domain = Column(String(100), comment='域名多个用逗号隔开')
+    referral_code = Column(String(100), comment='邀请码')
+
+    @classmethod
+    def get_referral_code_by_source(cls, session, source):
+        try:
+            agent = session.query(cls).filter_by(domain=source).first()
+            if agent:
+                return agent.referral_code
+            else:
+                return ""
+        except:
+            return ""
+
 def update_recharge_card_status(session, card_account, status=recharge_card_status_used, username=''):
     return RechargeCard.update(session, {'card_account': card_account},
                        {'status': status, 'bound_user': username})
@@ -421,3 +444,7 @@ def request_pay_h5(amount):
             return None, "Error: " + data.get('message'), None, None
     else:
         return None, "Error: request failed", None, None
+
+def init_referral_code(session, source):
+    referral_code = Agent.get_referral_code_by_source(session, source)
+    return referral_code
