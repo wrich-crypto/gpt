@@ -43,6 +43,8 @@ class User(BaseModel):
     token = Column(String(100), index=True, nullable=True)
     invitation_code = Column(String(20), unique=True, nullable=False)
     referral_code = Column(String(20), unique=True, nullable=False)
+    invitation_user_id = Column(String(20), nullable=True)
+    invitation_user_name = Column(String(20), nullable=True)
 
     bind_phone = Column(Integer, nullable=True)
     card_count = Column(Integer, nullable=True)
@@ -168,19 +170,29 @@ class RechargeCard(BaseModel):
     recharge_amount = Column(DECIMAL(20, 2), nullable=False)
     status = Column(Integer, nullable=False, default=1)  # 1未使用, 2已使用
     recharge_time = Column(DateTime, nullable=True)
+    create_user = Column(String(100), nullable=True)
+    create_user_id = Column(Integer, nullable=True)
     create_time = Column(DateTime, default=datetime.datetime.now(), nullable=False)
+    createTime = Column(DateTime, default=datetime.datetime.now(), nullable=False)
+    updateTime = Column(DateTime, default=datetime.datetime.now(), nullable=False)
 
 class Agent(BaseModel):
     __tablename__ = 'agent'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    title = Column(String(100), comment='标题')
-    slogan = Column(String(100), comment='广告语')
-    ai_name = Column(String(50), comment='AI名字')
-    wechat_qr_code = Column(String(255), comment='微信二维码')
-    customer_service_phone = Column(String(20), comment='客服电话')
-    domain = Column(String(100), comment='域名多个用逗号隔开')
-    referral_code = Column(String(100), comment='邀请码')
+    title = Column(String(100), nullable=True, comment="标题")
+    slogan = Column(String(100), nullable=True, comment="广告语")
+    ai_name = Column(String(50), nullable=True, comment="AI名字")
+    ai_avatar = Column(String(50), nullable=True, comment="AI头像")
+    referral_reward = Column(Integer, nullable=True, comment="邀请奖励开关1打开 2关闭")
+    wechat_qr_code = Column(String(255), nullable=True, comment="微信二维码")
+    customer_service_phone = Column(String(20), nullable=True, comment="客服电话")
+    domain = Column(String(100), nullable=True, comment="域名多个用逗号隔开")
+    referral_code = Column(String(100), nullable=True, comment="邀请码")
+    user_id = Column(Integer, nullable=True, comment="用户ID 2关闭")
+    balance = Column(DECIMAL(20, 2), default=0, nullable=False)
+    createTime = Column(DateTime, default=datetime.datetime.now(), nullable=False)
+    updateTime = Column(DateTime, default=datetime.datetime.now(), nullable=False)
 
     @classmethod
     def get_referral_code_by_source(cls, session, source):
