@@ -75,16 +75,24 @@ def handle_user_registration():
 
     self_referral_code = generate_referral_code()
     source = request.host
+    referral_code = init_referral_code(session, source) if referral_code is None or referral_code == "" else referral_code
+    referral_user = User.query(session, referral_code=referral_code)
+
+    if referral_user.role == user_role_agent:
+        invitation_user_id = referral_user.id
+        invitation_user_name = referral_user.username
+    else:
+        invitation_user_id = referral_user.invitation_user_id
+        invitation_user_name = referral_user.invitation_user_name
+
     instance, e = User.create(session, username=username, password=hash_password, email=email,
                 phone=phone, referral_code=self_referral_code, token=token, bind_phone=bind_phone,
-                source=source, invitation_code=referral_code)
+                source=source, invitation_code=referral_code, invitation_user_id=invitation_user_id,
+                invitation_user_name=invitation_user_name)
 
     if instance is None:
         logger.error(f'account exist username:{username}, email:{email}, phone:{phone}, error:{e}')
         return error_response(ErrorCode.ERROR_INTERNAL_SERVER, "server error")
-
-    referral_code = init_referral_code(session, source) if referral_code is None or referral_code == "" else referral_code
-    referral_user = User.query(session, referral_code=referral_code)
 
     if referral_user is not None and referral_user.id > 0:
         generate_invication(session, referral_user.id, instance.id)

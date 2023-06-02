@@ -19,7 +19,8 @@ recharge_card_status_normal = 1
 recharge_card_status_used = 2
 
 user_role_normal = 1
-user_role_manager = 2
+user_role_agent = 2
+user_role_manager = 3
 
 status_normal = 1
 status_delete = 2
@@ -31,6 +32,7 @@ order_status_error = 3
 order_pay_type_native = 1
 order_pay_type_jsapi = 2
 order_pay_type_h5 = 3
+
 
 class User(BaseModel):
     __tablename__ = 'users'
@@ -44,7 +46,7 @@ class User(BaseModel):
     invitation_code = Column(String(20), unique=True, nullable=False)
     referral_code = Column(String(20), unique=True, nullable=False)
     invitation_user_id = Column(String(20), nullable=True)
-    invitation_user_name = Column(String(20), nullable=True)
+    invitation_user_name = Column(String(100), nullable=True)
 
     bind_phone = Column(Integer, nullable=True)
     card_count = Column(Integer, nullable=True)
