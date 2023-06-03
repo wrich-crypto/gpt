@@ -78,7 +78,7 @@ def handle_user_registration():
     referral_code = init_referral_code(session, source) if referral_code is None or referral_code == "" else referral_code
     referral_user = User.query(session, referral_code=referral_code)
 
-    if referral_user.role == user_role_agent:
+    if referral_user.is_role_present(user_role_agent):
         invitation_user_id = referral_user.id
         invitation_user_name = referral_user.username
     else:
@@ -259,11 +259,16 @@ def handle_get_email_verification_code():
     if err is not None:
         logger.error(f'handle_get_email_verification_code, email_client.send_email, email:{email} error:{err}')
 
-    instance, e = VerificationCode.upsert(session, {"email": email},
+    instance, err = VerificationCode.upsert(session, {"email": email},
                                           {"username": username, "code_type": code_type_email,
                                            "code": code, "email": email})
+
+    if err is not None:
+        logger.error(f'handle_get_email_verification_code, VerificationCode.upsert, email:{email} error:{err}')
+
+    logger.info(f'code:{code}')
     if instance is None:
-        logger.error(f'func handle_get_phone_verification_code, VerificationCode.create, username:{username} error: {e}')
+        logger.error(f'func handle_get_phone_verification_code, VerificationCode.create, username:{username} error: {err}')
 
     response_data = ErrorCode.success()
     return jsonify(response_data)

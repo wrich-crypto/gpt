@@ -55,7 +55,7 @@ class User(BaseModel):
     remaining_points = Column(Integer, nullable=True)
     source = Column(String(255), nullable=True)
     remarks = Column(String(255), nullable=True)
-    role = Column(Integer, default=user_role_normal)
+    role = Column(String(255), default=str(user_role_normal))
     status = Column(Integer, default=status_normal)
     created_at = Column(DateTime, default=datetime.datetime.now(), nullable=False)
     createTime = Column(DateTime, default=datetime.datetime.now(), nullable=False)
@@ -72,6 +72,24 @@ class User(BaseModel):
             return None
         except Exception as e:
             return e
+
+    def is_role_present(self, role_to_check):
+        """
+        Check if the given role is present in the role attribute of the User instance.
+
+        Parameters
+        ----------
+        role_to_check: int
+            The role to check.
+
+        Returns
+        -------
+        bool
+            True if the role is present, False otherwise.
+        """
+        role_to_check = str(role_to_check)
+        roles = self.role.split(',')
+        return role_to_check in roles
 
 class Order(BaseModel):
     __tablename__ = 'user_orders'
@@ -107,6 +125,8 @@ class UserInvitation(BaseModel):
     invitee_id = Column(Integer, nullable=False)
     invitee_reward = Column(DECIMAL(10, 2), nullable=False)
     created_at = Column(DateTime, default=datetime.datetime.now(), nullable=False)
+    createTime = Column(DateTime, default=datetime.datetime.now(), nullable=False)
+    updateTime = Column(DateTime, default=datetime.datetime.now(), nullable=False)
 
 class UserBalance(BaseModel):
     __tablename__ = 'user_balances'
@@ -115,6 +135,8 @@ class UserBalance(BaseModel):
     total_recharge = Column(DECIMAL(20, 2), nullable=False)
     consumed_amount = Column(DECIMAL(20, 2), nullable=False)
     created_at = Column(DateTime, default=datetime.datetime.now(), nullable=False)
+    createTime = Column(DateTime, default=datetime.datetime.now(), nullable=False)
+    updateTime = Column(DateTime, default=datetime.datetime.now(), nullable=False)
 
 class UserRecharge(BaseModel):
     __tablename__ = 'user_recharges'
@@ -156,7 +178,9 @@ class VerificationCode(BaseModel):
     phone = Column(String(100), nullable=False)
     code_type = Column(String(10), nullable=False)              #1邮箱2手机
     code = Column(String(10), nullable=False)
-    expired_at = Column(TIMESTAMP, server_default=text("CURRENT_TIMESTAMP + INTERVAL '5' MINUTE"), nullable=False)
+    expired_at = Column(DateTime, default=datetime.datetime.now(), nullable=False)
+    createTime = Column(DateTime, default=datetime.datetime.now(), nullable=False)
+    updateTime = Column(DateTime, default=datetime.datetime.now(), nullable=False)
 
 class RechargeCard(BaseModel):
     __tablename__ = 'recharge_cards'
