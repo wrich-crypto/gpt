@@ -221,11 +221,11 @@ class Agent(BaseModel):
     updateTime = Column(DateTime, default=datetime.datetime.now(), nullable=False)
 
     @classmethod
-    def get_referral_code_by_source(cls, session, source):
+    def get_user_id_by_source(cls, session, source):
         try:
             agent = session.query(cls).filter_by(domain=source).first()
             if agent:
-                return agent.referral_code
+                return agent.user_id
             else:
                 return ""
         except:
@@ -484,5 +484,13 @@ def request_pay_h5(amount):
         return None, "Error: request failed", None, None
 
 def init_referral_code(session, source):
-    referral_code = Agent.get_referral_code_by_source(session, source)
-    return referral_code
+    user_id = Agent.get_user_id_by_source(session, source)
+
+    user = User.query(session, id=user_id)
+
+    if user is None:
+        logger.error(f'init_referral_code User.query, account no exist')
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'account no exist')
+
+
+    return user.referral_code
