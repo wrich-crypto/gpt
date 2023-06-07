@@ -432,7 +432,7 @@ def request_pay_by_type(session, order_type, amount, user_id, open_id=None):
         if not code_url:
             return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "Missing code_url in response")
 
-        response_data = ErrorCode.success({'code': code, 'msg': code_url})
+        response_data = ErrorCode.success({'code_url': code_url})
 
     elif order_type == order_pay_type_jsapi:
         reason, out_trade_no, amount = request_pay_jsapi(amount, open_id)
