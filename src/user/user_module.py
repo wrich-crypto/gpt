@@ -423,7 +423,16 @@ def user_verification(session, registration_type, verification_code, email, phon
 def request_pay_by_type(session, order_type, amount, user_id, open_id=None):
     if order_type == order_pay_type_native:
         code, msg, out_trade_no, amount = request_pay(amount)
-        response_data = ErrorCode.success({'code': code, 'msg': msg})
+        if code != 200:
+            return error_response(code, "Payment request failed")
+
+        # Parse JSON from msg and extract the code_url value
+        msg_data = json.loads(msg)
+        code_url = msg_data.get('code_url')
+        if not code_url:
+            return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "Missing code_url in response")
+
+        response_data = ErrorCode.success({'code': code, 'msg': code_url})
 
     elif order_type == order_pay_type_jsapi:
         reason, out_trade_no, amount = request_pay_jsapi(amount, open_id)
@@ -431,11 +440,10 @@ def request_pay_by_type(session, order_type, amount, user_id, open_id=None):
 
     elif order_type == order_pay_type_h5:
         code, reason, out_trade_no, amount = request_pay_h5(amount)
-        response_data = ErrorCode.success({ 'code': code, 'reason': reason})
+        response_data = ErrorCode.success({'code': code, 'reason': reason})
 
     else:
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "Order.create error")
-
 
     instance, error_msg = Order.create(session, trade_no=out_trade_no, user_id=user_id,
                                        order_type=order_type,

@@ -346,7 +346,6 @@ def handle_payment():
     logger.info('update_user_balance')
     amount = int(g.data.get('amount'))
     open_id = g.data.get('open_id')
-
     order_type = int(g.data.get('order_type'))
 
     auth_header = request.headers.get('Authorization')
