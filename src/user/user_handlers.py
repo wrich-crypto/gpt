@@ -351,11 +351,11 @@ def handle_payment():
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
         logger.error(f'Invalid auth_header, amount:{auth_header}')
-        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid auth_header')
+        return error_response(ErrorCode.ERROR_TOKEN, 'Invalid auth_header')
 
     token = auth_header[7:]
 
-    if amount is None or amount == '':
+    if amount is None or amount == '' or int(amount) < 5000:
         logger.error(f'Invalid amount, amount:{amount}')
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid amount')
 
