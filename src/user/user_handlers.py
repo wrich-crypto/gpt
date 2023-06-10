@@ -406,9 +406,7 @@ def get_order_status():
     response_data = {
         'trade_no': order.trade_no,
         'status': order.status,
-        'user_id': order.user_id,
-        'amount': str(order.amount),  # assuming amount is of DECIMAL type
-        'order_type': order.order_type,
+        'amount': str(order.amount),
         "balance": userBalance.total_recharge - userBalance.consumed_amount,
     }
     return jsonify(response_data)
