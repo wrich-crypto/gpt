@@ -199,7 +199,7 @@ class RechargeCard(BaseModel):
     recharge_time = Column(DateTime, nullable=True)
     create_user = Column(String(100), nullable=True)
     create_user_id = Column(Integer, nullable=True)
-    create_at = Column(DateTime, default=datetime.datetime.now(), nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.now(), nullable=False)
     createTime = Column(DateTime, default=datetime.datetime.now(), nullable=False)
     updateTime = Column(DateTime, default=datetime.datetime.now(), nullable=False)
 
