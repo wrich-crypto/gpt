@@ -191,7 +191,6 @@ class RechargeCard(BaseModel):
     card_account = Column(String(20), unique=True, nullable=False)
     card_password = Column(String(20), nullable=False)
     expire_time = Column(DateTime, nullable=True)
-    total_points = Column(Integer, nullable=True)
     used_points = Column(Integer, nullable=True)
     bound_user = Column(String(255), nullable=True)
     recharge_type = Column(String(50), nullable=True)
