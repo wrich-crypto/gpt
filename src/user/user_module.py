@@ -433,15 +433,15 @@ def request_pay_by_type(session, order_type, amount, user_id, open_id=None):
         if not code_url:
             return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "Missing code_url in response")
 
-        response_data = ErrorCode.success({'code_url': code_url})
+        response_data = ErrorCode.success({'code_url': code_url, 'trade_no': out_trade_no})
 
     elif order_type == order_pay_type_jsapi:
         reason, out_trade_no, amount = request_pay_jsapi(amount, open_id)
-        response_data = ErrorCode.success({'reason': reason})
+        response_data = ErrorCode.success({'reason': reason, 'trade_no': out_trade_no})
 
     elif order_type == order_pay_type_h5:
         code, reason, out_trade_no, amount = request_pay_h5(amount)
-        response_data = ErrorCode.success({'code': code, 'reason': reason})
+        response_data = ErrorCode.success({'code': code, 'reason': reason, 'trade_no': out_trade_no})
 
     else:
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "Order.create error")

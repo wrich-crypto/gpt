@@ -368,6 +368,51 @@ def handle_payment():
     response_data = request_pay_by_type(session, order_type, amount, user.id, open_id)
     return jsonify(response_data)
 
+@user_bp.route('/order_status', methods=['GET'])
+def get_order_status():
+    session = g.session
+    logger.info('get_order_status')
+
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        logger.error(f'Invalid token, auth_header:{auth_header}')
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid token')
+
+    token = auth_header[7:]
+
+    user = User.query(session, token=token)
+    if not user:
+        logger.error(f'Invalid token, auth_header:{auth_header}')
+        return error_response(ErrorCode.ERROR_TOKEN, "Invalid token")
+
+    userBalance = UserBalance.query(session, user_id=user.id)
+
+    if userBalance is None:
+        return False
+
+    # Extract the trade_no from the request
+    trade_no = request.args.get('trade_no')
+    if not trade_no:
+        logger.error(f'No trade_no provided')
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'No trade_no provided')
+
+    # Fetch the order by trade_no
+    order = Order.query(session, trade_no=trade_no)
+    if not order:
+        logger.error(f'No order found with trade_no:{trade_no}')
+        return error_response(ErrorCode.ERROR_INTERNAL_SERVER, "No order found with this trade_no")
+
+    # Return order status
+    response_data = {
+        'trade_no': order.trade_no,
+        'status': order.status,
+        'user_id': order.user_id,
+        'amount': str(order.amount),  # assuming amount is of DECIMAL type
+        'order_type': order.order_type,
+        "balance": userBalance.total_recharge - userBalance.consumed_amount,
+    }
+    return jsonify(response_data)
+
 @user_bp.route('/pay/notify', methods=['POST'])
 def handle_payment_notify():
     session = g.session
