@@ -100,6 +100,8 @@ class Order(BaseModel):
     amount = Column(DECIMAL(10, 2), nullable=False)
     status = Column(Integer, nullable=False, default=1) #默认1表示正常 2表示订单执行中 3表示订单失败
     created_at = Column(DateTime, default=datetime.datetime.now(), nullable=False)
+    createTime = Column(DateTime, default=datetime.datetime.now(), nullable=False)
+    updateTime = Column(DateTime, default=datetime.datetime.now(), nullable=False)
 
 
     @classmethod
