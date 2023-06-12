@@ -390,6 +390,34 @@ def handle_get_remaining_tokens():
     response_data = ErrorCode.success({"remaining_tokens": remaining_tokens})
     return jsonify(response_data)
 
+
+@user_bp.route('/get_openid', methods=['GET'])
+def get_openid():
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        logger.error(f'Invalid auth_header, amount:{auth_header}')
+        return error_response(ErrorCode.ERROR_TOKEN, 'Invalid auth_header')
+
+    code = request.args.get('code')
+    if not code:
+        return jsonify({'error': 'Missing code parameter.'})
+
+    url = 'https://api.weixin.qq.com/sns/oauth2/access_token'
+    params = {
+        'appid': 'YOUR_APP_ID',  # Replace with your App ID
+        'secret': 'YOUR_APP_SECRET',  # Replace with your App Secret
+        'code': code,
+        'grant_type': 'authorization_code'
+    }
+    r = requests.get(url, params=params)
+    r.raise_for_status()
+    response = r.json()
+
+    if 'openid' in response:
+        return jsonify({'openid': response['openid']})
+    else:
+        return jsonify({'error': 'Could not get OpenID.'})
+
 @user_bp.route('/pay', methods=['POST'])
 def handle_payment():
     session = g.session

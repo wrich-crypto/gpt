@@ -306,6 +306,9 @@ def update_user_consumed(session, user_id, consumed_amount):
         return False
 
     current_consumed_amount = userBalance.consumed_amount
+    current_total_amount = userBalance.total_recharge
+    current_remain_amount = userBalance.total_recharge - userBalance.consumed_amount
+
     result, e = UserBalance.upsert(session, {'user_id': user_id},
                        {'user_id': user_id, 'consumed_amount': (consumed_amount + current_consumed_amount)})
 
@@ -322,8 +325,8 @@ def update_user_consumed(session, user_id, consumed_amount):
         return False
 
     result, e = user.update(session, {'id': user_id},
-                {'points': userBalance.total_recharge, 'used_points': userBalance.consumed_amount + consumed_amount,
-                 'remaining_points': userBalance.total_recharge - userBalance.consumed_amount - consumed_amount})
+                {'points': userBalance.total_recharge, 'used_points': current_consumed_amount + consumed_amount,
+                 'remaining_points': userBalance.total_recharge - current_consumed_amount - consumed_amount})
 
     if result is False:
         logger.error(f'user_id:{user_id} update:{(consumed_amount + current_consumed_amount)} error:{e}')
