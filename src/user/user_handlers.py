@@ -109,6 +109,56 @@ def handle_user_registration():
     response_data = {'code': 0, 'msg': 'success'}
     return jsonify(response_data)
 
+
+@user_bp.route('/agent', methods=['GET'])
+def get_agent_info():
+    session = g.session
+    source = request.host
+    print(source)
+
+    if not source:
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Source parameter is missing')
+
+    agent = Agent.get_agent_by_source(session, source)
+
+    if not agent:
+        response_data_dict = {
+            'id': 1,
+            'title': 'AigcChina--提供专业、稳定、优质的GPT服务商',
+            'slogan': '先让1亿人用上GPT，率先进入AI时代。',
+            'ai_name': 'chatGPT',
+            'ai_avatar': '',
+            'referral_reward': 0,
+            'wechat_qr_code': 'aigcchina.ai',
+            'customer_service_phone': '1581252315',
+            'domain': 'Default Domain',
+            'referral_code': '',
+            'user_id': 1,
+            'balance': 0.00,
+            'createTime': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'updateTime': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        }
+    else:
+        response_data_dict = {
+            'id': agent.id,
+            'title': agent.title,
+            'slogan': agent.slogan,
+            'ai_name': agent.ai_name,
+            'ai_avatar': agent.ai_avatar,
+            'referral_reward': agent.referral_reward,
+            'wechat_qr_code': agent.wechat_qr_code,
+            'customer_service_phone': agent.customer_service_phone,
+            'domain': agent.domain,
+            'referral_code': agent.referral_code,
+            'user_id': agent.user_id,
+            'balance': float(agent.balance),
+            'createTime': agent.createTime.strftime('%Y-%m-%d %H:%M:%S'),
+            'updateTime': agent.updateTime.strftime('%Y-%m-%d %H:%M:%S'),
+        }
+
+    response_data = ErrorCode.success(response_data_dict)
+    return jsonify(response_data)
+
 @user_bp.route('/logout')
 def handle_user_logout():
     session = g.session

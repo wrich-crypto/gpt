@@ -224,9 +224,20 @@ class Agent(BaseModel):
     @classmethod
     def get_user_id_by_source(cls, session, source):
         try:
-            agent = session.query(cls).filter_by(domain=source).first()
+            agent = session.query(cls).filter(cls.domain.like(f"%{source}%")).first()
             if agent:
                 return agent.user_id
+            else:
+                return ""
+        except:
+            return ""
+
+    @classmethod
+    def get_agent_by_source(cls, session, source):
+        try:
+            agent = session.query(cls).filter(cls.domain.like(f"%{source}%")).first()
+            if agent:
+                return agent
             else:
                 return ""
         except:
@@ -499,7 +510,7 @@ def init_referral_code(session, source):
 
     if user is None:
         logger.error(f'init_referral_code User.query, account no exist')
-        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'account no exist')
+        return ''
 
 
     return user.referral_code
