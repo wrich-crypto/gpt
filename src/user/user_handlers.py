@@ -403,12 +403,14 @@ def get_order_status():
         return error_response(ErrorCode.ERROR_INTERNAL_SERVER, "No order found with this trade_no")
 
     # Return order status
-    response_data = {
+    response_data_dict = {
         'trade_no': order.trade_no,
         'status': order.status,
         'amount': str(order.amount),
         "balance": userBalance.total_recharge - userBalance.consumed_amount,
     }
+
+    response_data = ErrorCode.success(response_data_dict)
     return jsonify(response_data)
 
 @user_bp.route('/pay/notify', methods=['POST'])
