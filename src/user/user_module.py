@@ -506,6 +506,29 @@ def request_pay_h5(amount):
     else:
         return None, "Error: request failed", None, None
 
+def get_openid_by_code(code):
+    url = f'{main_config.pay_server_domain}/get_openid?code={code}'  # replace with your server url
+
+    try:
+        response = requests.get(url)
+        response.raise_for_status()  # If the request returned an HTTP error this line will raise a HTTPError exception
+
+    except requests.exceptions.HTTPError as http_err:
+        print(f"HTTP error occurred: {http_err}")
+        return None
+
+    except requests.exceptions.RequestException as err:
+        print(f"Error occurred: {err}")
+        return None
+
+    data = response.json()
+    print(data)
+    if 'openid' in data:
+        return data['openid']
+    else:
+        print('Could not get OpenID.')
+        return None
+
 def init_referral_code(session, source):
     user_id = Agent.get_user_id_by_source(session, source)
 

@@ -402,21 +402,14 @@ def get_openid():
     if not code:
         return jsonify({'error': 'Missing code parameter.'})
 
-    url = 'https://api.weixin.qq.com/sns/oauth2/access_token'
-    params = {
-        'appid': 'YOUR_APP_ID',  # Replace with your App ID
-        'secret': 'YOUR_APP_SECRET',  # Replace with your App Secret
-        'code': code,
-        'grant_type': 'authorization_code'
-    }
-    r = requests.get(url, params=params)
-    r.raise_for_status()
-    response = r.json()
+    openid = get_openid_by_code(code)
 
-    if 'openid' in response:
-        return jsonify({'openid': response['openid']})
+    if openid is not None:
+        response_data = ErrorCode.success({'openid': openid})
+        return jsonify(response_data)
     else:
-        return jsonify({'error': 'Could not get OpenID.'})
+        response_data = ErrorCode.error(ErrorCode.ERROR_INVALID_PARAMETER, 'Could not get OpenID.')
+        return jsonify(response_data)
 
 @user_bp.route('/pay', methods=['POST'])
 def handle_payment():
