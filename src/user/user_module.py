@@ -455,9 +455,18 @@ def request_pay_by_type(session, order_type, amount, user_id, open_id=None):
 
     elif order_type == order_pay_type_h5:
         code, reason, out_trade_no, amount = request_pay_h5(amount)
+
+        if code != 200:
+            return error_response(code, "Payment request failed")
+
+        # Parse JSON from msg and extract the code_url value
         reason_data = json.loads(reason)
-        h5_url = reason_data.get('code_url')
-        response_data = ErrorCode.success({'code': code, 'h5_url': h5_url, 'trade_no': out_trade_no})
+        h5_url = reason_data.get('h5_url')
+
+        if not h5_url:
+            return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "Missing h5_url in response")
+
+        response_data = ErrorCode.success({'h5_url': h5_url, 'trade_no': out_trade_no})
 
     else:
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "Order.create error")
