@@ -78,7 +78,7 @@ def handle_user_registration():
     referral_code = init_referral_code(session, source) if referral_code is None or referral_code == "" else referral_code
     referral_user = User.query(session, referral_code=referral_code)
 
-    if referral_user.is_role_present(user_role_agent):
+    if referral_user.is_role_present(user_role_agent) or referral_user.is_role_present(user_role_promotion):
         invitation_user_id = referral_user.id
         invitation_user_name = referral_user.username
     else:
