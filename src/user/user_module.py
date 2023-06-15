@@ -21,6 +21,7 @@ recharge_card_status_used = 2
 user_role_normal = 1
 user_role_agent = 2
 user_role_manager = 3
+user_role_promotion = 4
 
 status_normal = 1
 status_delete = 2

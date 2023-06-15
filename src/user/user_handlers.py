@@ -592,7 +592,7 @@ def handle_recharge():
         invitation_user = User.query(session, id=user.invitation_user_id)
         recharge_card_creator = User.query(session, id=recharge_card.create_user_id)
 
-        if invitation_user.role == user_role_manager or recharge_card_creator.role == user_role_manager:
+        if invitation_user.is_role_present(user_role_manager) or recharge_card_creator.is_role_present(user_role_manager):
             pass
         elif user.invitation_user_id != recharge_card.create_user_id:
             logger.error(f'Invalid card_account, card_account:{card_account} card_password:{card_password} user.invitation_user_id:{user.invitation_user_id} recharge_card.create_user_id:{recharge_card.create_user_id}')
