@@ -147,7 +147,7 @@ class UserRecharge(BaseModel):
     user_id = Column(Integer, nullable=False)
     pay_amount = Column(DECIMAL(20, 2), nullable=False)
     amount = Column(DECIMAL(20, 2), nullable=False)
-    recharge_method = Column(Integer, nullable=False)           #1支付通道 2邀请
+    recharge_method = Column(Integer, nullable=False)           #1支付通道 2邀请 3充值卡 4注册
     status = Column(Integer, nullable=False)                    #1成功 2失败
     created_at = Column(DateTime, default=datetime.datetime.now(), nullable=False)
     createTime = Column(DateTime, default=datetime.datetime.now(), nullable=False)

@@ -560,8 +560,28 @@ def handle_get_user_info():
         'last_time_using_token': last_time_using_token,
     }
 
+    # Only calculate and return the total pay amounts if the user's role is agent or admin
+    if user.is_role_present(user_role_agent) or user.is_role_present(user_role_promotion):
+        # Fetch all users whose invitation_user_id is the current user's ID
+        invited_users = session.query(User).filter_by(invitation_user_id=user.id).all()
+
+        total_wechat_pay_amount = 0
+        total_card_pay_amount = 0
+        for invited_user in invited_users:
+            # Get all recharges of the invited user
+            user_recharges = session.query(UserRecharge).filter_by(user_id=invited_user.id, status=status_success).all()
+            for recharge in user_recharges:
+                if recharge.recharge_method == recharge_method_pay:
+                    total_wechat_pay_amount += float(recharge.pay_amount)
+                elif recharge.recharge_method == recharge_method_card:
+                    total_card_pay_amount += float(recharge.pay_amount)
+
+        user_info['total_wechat_pay_amount'] = total_wechat_pay_amount
+        user_info['total_card_pay_amount'] = total_card_pay_amount
+
     response_data = ErrorCode.success(user_info)
     return jsonify(response_data)
+
 
 @user_bp.route('/recharge', methods=['POST'])
 def handle_recharge():
