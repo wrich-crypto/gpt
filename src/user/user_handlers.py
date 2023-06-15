@@ -581,11 +581,23 @@ def handle_recharge():
         logger.error(f'Invalid token, auth_header:{auth_header}')
         return error_response(ErrorCode.ERROR_TOKEN, 'Invalid token')
 
+
     recharge_card = RechargeCard.query(session, card_account=card_account, card_password=card_password)
 
     if recharge_card is None or recharge_card.status != recharge_card_status_normal:
         logger.error(f'Invalid card_account, card_account:{card_account} card_password:{card_password}')
         return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid recharge card or already used')
+
+    if user.invitation_user_id is not None and user.invitation_user_id > 0 and recharge_card.create_user_id is not None and recharge_card.create_user_id > 0:
+        invitation_user = User.query(session, id=user.invitation_user_id)
+        recharge_card_creator = User.query(session, id=recharge_card.create_user_id)
+
+        if invitation_user.role == user_role_manager or recharge_card_creator.role == user_role_manager:
+            pass
+        elif user.invitation_user_id != recharge_card.create_user_id:
+            logger.error(f'Invalid card_account, card_account:{card_account} card_password:{card_password} user.invitation_user_id:{user.invitation_user_id} recharge_card.create_user_id:{recharge_card.create_user_id}')
+            return error_response(ErrorCode.ERROR_INVALID_PARAMETER, 'Invalid recharge card or already used')
+
 
     if update_user_balance(session, user.id, recharge_card.recharge_amount) is False:
         logger.error(f'handle_recharge update_user_balance, card_account:{card_account} '
