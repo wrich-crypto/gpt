@@ -104,7 +104,7 @@ def generate(session, stream_id, user_id):
             openai_api.add_message("system", content)
 
             consume_token_amount = num_tokens_from_messages(openai_api.messages, openai_model)
-            consume_token_amount = consume_token_amount * 50 if chatMessage_instance.version == '4' else consume_token_amount * 2.5
+            consume_token_amount = consume_token_amount * 50 if chatMessage_instance.version == '4' else (consume_token_amount * 2.5 * 3 / 4)
             print(f'consume token:{consume_token_amount}')
         #使用uchat
         elif supplier == SUPPLIER_TYPE_UCHAT:
