@@ -58,9 +58,9 @@ class User(BaseModel):
     remarks = Column(String(255), nullable=True)
     role = Column(String(255), default=str(user_role_normal))
     status = Column(Integer, default=status_normal)
-    created_at = Column(DateTime, default=datetime.datetime.now(), nullable=False)
-    createTime = Column(DateTime, default=datetime.datetime.now(), nullable=False)
-    updateTime = Column(DateTime, default=datetime.datetime.now(), nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.now(timezone('Asia/Shanghai')), nullable=False)
+    createTime = Column(DateTime, default=datetime.datetime.now(timezone('Asia/Shanghai')), nullable=False)
+    updateTime = Column(DateTime, default=datetime.datetime.now(timezone('Asia/Shanghai')), nullable=False)
 
     @classmethod
     def update_user_source(cls, session, user_id, source):
@@ -100,9 +100,9 @@ class Order(BaseModel):
     order_type = Column(Integer, nullable=False, default=1)     #默认1微信支付native 2微信支付jsapi 3微信支付h5
     amount = Column(DECIMAL(10, 2), nullable=False)
     status = Column(Integer, nullable=False, default=1) #默认1表示正常 2表示订单执行中 3表示订单失败
-    created_at = Column(DateTime, default=datetime.datetime.now(), nullable=False)
-    createTime = Column(DateTime, default=datetime.datetime.now(), nullable=False)
-    updateTime = Column(DateTime, default=datetime.datetime.now(), nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.now(timezone('Asia/Shanghai')), nullable=False)
+    createTime = Column(DateTime, default=datetime.datetime.now(timezone('Asia/Shanghai')), nullable=False)
+    updateTime = Column(DateTime, default=datetime.datetime.now(timezone('Asia/Shanghai')), nullable=False)
 
 
     @classmethod
@@ -127,9 +127,9 @@ class UserInvitation(BaseModel):
     inviter_reward = Column(DECIMAL(10, 2), nullable=False)
     invitee_id = Column(Integer, nullable=False)
     invitee_reward = Column(DECIMAL(10, 2), nullable=False)
-    created_at = Column(DateTime, default=datetime.datetime.now(), nullable=False)
-    createTime = Column(DateTime, default=datetime.datetime.now(), nullable=False)
-    updateTime = Column(DateTime, default=datetime.datetime.now(), nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.now(timezone('Asia/Shanghai')), nullable=False)
+    createTime = Column(DateTime, default=datetime.datetime.now(timezone('Asia/Shanghai')), nullable=False)
+    updateTime = Column(DateTime, default=datetime.datetime.now(timezone('Asia/Shanghai')), nullable=False)
 
 class UserBalance(BaseModel):
     __tablename__ = 'user_balances'
@@ -137,9 +137,9 @@ class UserBalance(BaseModel):
     user_id = Column(Integer, nullable=False)
     total_recharge = Column(DECIMAL(20, 2), nullable=False)
     consumed_amount = Column(DECIMAL(20, 2), nullable=False)
-    created_at = Column(DateTime, default=datetime.datetime.now(), nullable=False)
-    createTime = Column(DateTime, default=datetime.datetime.now(), nullable=False)
-    updateTime = Column(DateTime, default=datetime.datetime.now(), nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.now(timezone('Asia/Shanghai')), nullable=False)
+    createTime = Column(DateTime, default=datetime.datetime.now(timezone('Asia/Shanghai')), nullable=False)
+    updateTime = Column(DateTime, default=datetime.datetime.now(timezone('Asia/Shanghai')), nullable=False)
 
 class UserRecharge(BaseModel):
     __tablename__ = 'user_recharges'
@@ -149,9 +149,9 @@ class UserRecharge(BaseModel):
     amount = Column(DECIMAL(20, 2), nullable=False)
     recharge_method = Column(Integer, nullable=False)           #1支付通道 2邀请 3充值卡 4注册
     status = Column(Integer, nullable=False)                    #1成功 2失败
-    created_at = Column(DateTime, default=datetime.datetime.now(), nullable=False)
-    createTime = Column(DateTime, default=datetime.datetime.now(), nullable=False)
-    updateTime = Column(DateTime, default=datetime.datetime.now(), nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.now(timezone('Asia/Shanghai')), nullable=False)
+    createTime = Column(DateTime, default=datetime.datetime.now(timezone('Asia/Shanghai')), nullable=False)
+    updateTime = Column(DateTime, default=datetime.datetime.now(timezone('Asia/Shanghai')), nullable=False)
 
     @classmethod
     def total_pay_amount(cls, session):
@@ -181,9 +181,9 @@ class VerificationCode(BaseModel):
     phone = Column(String(100), nullable=False)
     code_type = Column(String(10), nullable=False)              #1邮箱2手机
     code = Column(String(10), nullable=False)
-    expired_at = Column(DateTime, default=datetime.datetime.now(), nullable=False)
-    createTime = Column(DateTime, default=datetime.datetime.now(), nullable=False)
-    updateTime = Column(DateTime, default=datetime.datetime.now(), nullable=False)
+    expired_at = Column(DateTime, default=datetime.datetime.now(timezone('Asia/Shanghai')), nullable=False)
+    createTime = Column(DateTime, default=datetime.datetime.now(timezone('Asia/Shanghai')), nullable=False)
+    updateTime = Column(DateTime, default=datetime.datetime.now(timezone('Asia/Shanghai')), nullable=False)
 
 class RechargeCard(BaseModel):
     __tablename__ = 'recharge_cards'
@@ -200,9 +200,9 @@ class RechargeCard(BaseModel):
     recharge_time = Column(DateTime, nullable=True)
     create_user = Column(String(100), nullable=True)
     create_user_id = Column(Integer, nullable=True)
-    created_at = Column(DateTime, default=datetime.datetime.now(), nullable=False)
-    createTime = Column(DateTime, default=datetime.datetime.now(), nullable=False)
-    updateTime = Column(DateTime, default=datetime.datetime.now(), nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.now(timezone('Asia/Shanghai')), nullable=False)
+    createTime = Column(DateTime, default=datetime.datetime.now(timezone('Asia/Shanghai')), nullable=False)
+    updateTime = Column(DateTime, default=datetime.datetime.now(timezone('Asia/Shanghai')), nullable=False)
 
 class Agent(BaseModel):
     __tablename__ = 'agent'
@@ -219,8 +219,8 @@ class Agent(BaseModel):
     referral_code = Column(String(100), nullable=True, comment="邀请码")
     user_id = Column(Integer, nullable=True, comment="用户ID 2关闭")
     balance = Column(DECIMAL(20, 2), default=0, nullable=False)
-    createTime = Column(DateTime, default=datetime.datetime.now(), nullable=False)
-    updateTime = Column(DateTime, default=datetime.datetime.now(), nullable=False)
+    createTime = Column(DateTime, default=datetime.datetime.now(timezone('Asia/Shanghai')), nullable=False)
+    updateTime = Column(DateTime, default=datetime.datetime.now(timezone('Asia/Shanghai')), nullable=False)
 
     @classmethod
     def get_user_id_by_source(cls, session, source):
@@ -264,6 +264,9 @@ def get_reward(session, inviter_recharge, invitee_recharge):
 def update_user_balance(session, user_id, reward):
     userBalance = UserBalance.query(session, user_id=user_id)
     reward = Decimal(reward)
+
+    if reward <= 0:
+        return True
 
     if userBalance is None:
         total_recharge = reward
@@ -346,10 +349,14 @@ def balance_valid(session, user_id):
 
     return False
 
-def generate_invication(session, inviter_id, invitee_id):
+def generate_invication(session, inviter_id, invitee_id, is_reward=True):
     inviter_recharge = UserRecharge.exists(session, user_id=inviter_id, recharge_method=recharge_method_pay)
     invitee_recharge = UserRecharge.exists(session, user_id=invitee_id, recharge_method=recharge_method_pay)
     inviter_reward, invitee_reward = get_reward(session, inviter_recharge, invitee_recharge)
+
+    if is_reward is False:
+        inviter_reward = 0
+        invitee_reward = 0
 
     instance, e =UserInvitation.create(session, inviter_id=inviter_id, invitee_id=invitee_id,
                                        inviter_reward=inviter_reward, invitee_reward=invitee_reward)

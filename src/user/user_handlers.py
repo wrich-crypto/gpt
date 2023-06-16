@@ -42,6 +42,7 @@ def handle_user_registration():
     referral_code = g.data.get('referral_code')
     hash_password = hash_token(password)
     token = generate_token(username, hash_password)
+    is_reward = False if referral_code is None or referral_code == '' else True
 
     logger.info(f'register email:{email}, phone:{phone}, '
                 f'verification_code:{verification_code},password:{password},hash_password:{hash_password}')
@@ -78,6 +79,10 @@ def handle_user_registration():
     referral_code = init_referral_code(session, source) if referral_code is None or referral_code == "" else referral_code
     referral_user = User.query(session, referral_code=referral_code)
 
+    if referral_user is None:
+        logger.error(f'referral_user dont exist username:{username}, email:{email}, phone:{phone}')
+        return error_response(ErrorCode.ERROR_INVALID_PARAMETER, "referral_user error")
+
     if referral_user.is_role_present(user_role_agent) or referral_user.is_role_present(user_role_promotion):
         invitation_user_id = referral_user.id
         invitation_user_name = referral_user.username
@@ -95,7 +100,7 @@ def handle_user_registration():
         return error_response(ErrorCode.ERROR_INTERNAL_SERVER, "server error")
 
     if referral_user is not None and referral_user.id > 0:
-        generate_invication(session, referral_user.id, instance.id)
+        generate_invication(session, referral_user.id, instance.id, is_reward)
 
     token_amount = DevConfig.get_free_token_count(session)
     user_id = instance.id
@@ -135,8 +140,8 @@ def get_agent_info():
             'referral_code': '',
             'user_id': 1,
             'balance': 0.00,
-            'createTime': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            'updateTime': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'createTime': datetime.datetime.now(timezone('Asia/Shanghai')).strftime('%Y-%m-%d %H:%M:%S'),
+            'updateTime': datetime.datetime.now(timezone('Asia/Shanghai')).strftime('%Y-%m-%d %H:%M:%S'),
         }
     else:
         response_data_dict = {
@@ -263,6 +268,7 @@ def handle_get_phone_verification_code():
     template_code = main_config.template_code
     template_param = '{"code":"' + str(code) + '"}'
     err = sms_client.send_message(phone, sign_name, template_code, template_param)
+    logger.info(f'phone:{phone} code:{code}')
 
     if err is not None:
         logger.error(f'handle_get_phone_verification_code, '

@@ -23,9 +23,9 @@ class ChatMessage(BaseModel):
     tokens_consumed = Column(DECIMAL(10, 2), nullable=False)
     version = Column(String(10), nullable=False)
     api_key = Column(String(255), nullable=False)  # 新增的字段
-    created_at = Column(DateTime, default=datetime.datetime.now(), nullable=False)
-    createTime = Column(DateTime, default=datetime.datetime.now(), nullable=False)
-    updateTime = Column(DateTime, default=datetime.datetime.now(), nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.now(timezone('Asia/Shanghai')), nullable=False)
+    createTime = Column(DateTime, default=datetime.datetime.now(timezone('Asia/Shanghai')), nullable=False)
+    updateTime = Column(DateTime, default=datetime.datetime.now(timezone('Asia/Shanghai')), nullable=False)
 
     @classmethod
     def get_message_history_by_channel_id(cls, session, channel_id):
@@ -47,7 +47,7 @@ class ChatMessage(BaseModel):
 
     @classmethod
     def get_today_token_sum_by_api_key(cls, session, api_key):
-        today_begin = datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        today_begin = datetime.datetime.now(timezone('Asia/Shanghai')).replace(hour=0, minute=0, second=0, microsecond=0)
         tomorrow_begin = today_begin + datetime.timedelta(days=1)
         return cls.get_token_sum_by_api_key(session, api_key, begin_time=today_begin, end_time=tomorrow_begin)
 
@@ -59,9 +59,9 @@ class ChatChannel(BaseModel):
     user_id = Column(Integer, nullable=False)
     version = Column(String(10), nullable=False)
     status = Column(Integer, nullable=False)
-    created_at = Column(DateTime, default=datetime.datetime.now(), nullable=False)
-    createTime = Column(DateTime, default=datetime.datetime.now(), nullable=False)
-    updateTime = Column(DateTime, default=datetime.datetime.now(), nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.now(timezone('Asia/Shanghai')), nullable=False)
+    createTime = Column(DateTime, default=datetime.datetime.now(timezone('Asia/Shanghai')), nullable=False)
+    updateTime = Column(DateTime, default=datetime.datetime.now(timezone('Asia/Shanghai')), nullable=False)
 
     @classmethod
     def get_channels_by_user(cls, session, user_id, status=None):
