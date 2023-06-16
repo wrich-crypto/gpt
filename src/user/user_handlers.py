@@ -582,8 +582,8 @@ def handle_get_user_info():
                 elif recharge.recharge_method == recharge_method_card:
                     total_card_pay_amount += float(recharge.pay_amount)
 
-        user_info['total_wechat_pay_amount'] = total_wechat_pay_amount
-        user_info['total_card_pay_amount'] = total_card_pay_amount
+        user_info['total_wechat_pay_amount'] = total_wechat_pay_amount / 100
+        user_info['total_card_pay_amount'] = total_card_pay_amount / 100
 
     response_data = ErrorCode.success(user_info)
     return jsonify(response_data)
