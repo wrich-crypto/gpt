@@ -90,10 +90,12 @@ def handle_user_registration():
         invitation_user_id = referral_user.invitation_user_id
         invitation_user_name = referral_user.invitation_user_name
 
+    logger.info(datetime.datetime.now(timezone('Asia/Shanghai')))
     instance, e = User.create(session, username=username, password=hash_password, email=email,
                 phone=phone, referral_code=self_referral_code, token=token, bind_phone=bind_phone,
                 source=source, invitation_code=referral_code, invitation_user_id=invitation_user_id,
-                invitation_user_name=invitation_user_name)
+                invitation_user_name=invitation_user_name, create_at=datetime.datetime.now(timezone('Asia/Shanghai')),
+                createTime=datetime.datetime.now(timezone('Asia/Shanghai')))
 
     if instance is None:
         logger.error(f'account exist username:{username}, email:{email}, phone:{phone}, error:{e}')
