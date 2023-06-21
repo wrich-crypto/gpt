@@ -59,6 +59,21 @@ class OpenAIChat:
         except Exception as e:
             return None, e
 
+# class DecodedOpenaiChunk:
+#     def __init__(self, chunk: str):
+#         self.id = str(uuid.uuid4())
+#         self.event = 'message'
+#         self.data = None
+#
+#         self._parse_chunk(chunk)
+#
+#     def _parse_chunk(self, chunk: str):
+#         try:
+#             content_match = re.search('{"content":"(.*?)"},"finish_reason":null}]}', chunk)
+#             self.data = content_match.group(1)
+#         except Exception as e:
+#             print(f"Error parsing chunk: {e}")
+
 class DecodedOpenaiChunk:
     def __init__(self, chunk: str):
         self.id = str(uuid.uuid4())
@@ -69,7 +84,8 @@ class DecodedOpenaiChunk:
 
     def _parse_chunk(self, chunk: str):
         try:
-            content_match = re.search('{"content":"(.*?)"},"finish_reason":null}]}', chunk)
-            self.data = content_match.group(1)
-        except Exception as e:
+            json_str = chunk.lstrip('data: ')  # 删除字符串前面的"data: "部分
+            json_data = json.loads(json_str)
+            self.data = json_data.get('choices', [{}])[0].get('delta', {}).get('content', '')
+        except json.JSONDecodeError as e:
             print(f"Error parsing chunk: {e}")
