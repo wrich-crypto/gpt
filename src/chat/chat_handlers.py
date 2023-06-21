@@ -98,6 +98,7 @@ def generate(session, stream_id, user_id):
                     if chunk_obj and chunk_obj.data:
                         event_name = 'message'
                         markdown_data = chunk_obj.data.replace('\\n', '<c-api-line>')   #适配uchat格式
+                        markdown_data = markdown_data.replace('\\\\', '\\')   #适配uchat格式
                         markdown_data = markdown_data.replace('\\"', '\"')   #适配uchat格式
                         markdown_data = markdown_data.replace('\\', '\'')   #适配uchat格式
                         logger.info(f'markdown_data:{markdown_data}')
