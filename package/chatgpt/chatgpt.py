@@ -70,5 +70,6 @@ class DecodedOpenaiChunk:
     def _parse_chunk(self, chunk: str):
         try:
             content_match = re.search('{"content":"(.*?)"},', chunk)
+            self.data = content_match.group(1)
         except Exception as e:
             print(f"Error parsing chunk: {e}")
