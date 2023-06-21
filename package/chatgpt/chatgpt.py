@@ -71,6 +71,12 @@ class DecodedOpenaiChunk:
         try:
             json_str = chunk.lstrip('data: ')
             json_data = json.loads(json_str)
-            self.data = json_data.get('choices', [{}])[0].get('delta', {}).get('content', '').replace('\n', '\\n')
+            delta = json_data.get('choices', [{}])[0].get('delta', {})
+            if 'role' in delta:
+                self.data = delta.get('content', '')
+            else:
+                self.data = delta.get('content', '')
+
+            self.data = self.data.replace('\n', '\\n')
         except json.JSONDecodeError as e:
             print(f"Error parsing chunk: {e}")
