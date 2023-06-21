@@ -69,7 +69,7 @@ class DecodedOpenaiChunk:
 
     def _parse_chunk(self, chunk: str):
         try:
-            content_match = re.search(r'"content":\s*"(.*?)"', chunk)
+            content_match = re.search('{"content":"(.*?)"},', chunk)
             if content_match:
                 self.data = content_match.group(1).replace('\\n', '<c-api-line>')
         except Exception as e:
