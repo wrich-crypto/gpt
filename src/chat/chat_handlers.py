@@ -100,7 +100,7 @@ def generate(session, stream_id, user_id):
                         markdown_data = chunk_obj.data.replace('\\n', '<c-api-line>')   #适配uchat格式
                         markdown_data = markdown_data.replace('\\\\', '\\')   #适配uchat格式
                         markdown_data = markdown_data.replace('\\"', '\"')   #适配uchat格式
-                        markdown_data = markdown_data.replace('\\', '\'')   #适配uchat格式
+                        markdown_data = markdown_data.replace("\\'", '\'')   #适配uchat格式
                         logger.info(f'markdown_data:{markdown_data}')
                         formatted_chunk = f"id: {chunk_obj.id}\nevent: {event_name}\ndata: {markdown_data}\n\n"
                         content = content + chunk_obj.data.replace('\\\\', '\\')
