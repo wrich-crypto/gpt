@@ -91,13 +91,23 @@ class DecodedOpenaiChunk:
 
     def _parse_chunk(self, chunk: str):
         try:
-            json_str = chunk.lstrip('data: ')
-            json_data = json.loads(json_str)
-            choices = json_data.get('choices', [{}])
-            for choice in choices:
-                delta_content = choice.get('delta', {}).get('content', '')
-                if delta_content:
-                    self.data += delta_content
+            # 使用'data: '作为分隔符分割字符串
+            parts = chunk.split('data: ')
+
+            # 删除每个部分前面的空白字符，并且跳过第一部分（因为它在分割后是一个空字符串）
+            json_parts = [part.strip() for part in parts if part]
+
+            for json_str in json_parts:
+            # json_str = chunk.lstrip('data: ')
+                print(json_str)
+                json_data = json.loads(json_str)
+                print(f'json_data:{json_data}')
+                choices = json_data.get('choices', [{}])
+                print(f'choices:{choices}')
+                for choice in choices:
+                    delta_content = choice.get('delta', {}).get('content', '')
+                    if delta_content:
+                        self.data += delta_content
             self.data = self.data.replace('\n', '\\n')
         except json.JSONDecodeError as e:
             print(f"Error parsing chunk: {e}")
