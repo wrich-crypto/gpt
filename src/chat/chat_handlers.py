@@ -90,16 +90,16 @@ def generate(session, stream_id, user_id):
                 if chunk:
                     decoded_chunk = chunk.decode("utf-8")
 
-                    print(f'decoded_chunk:{decoded_chunk}')
+                    # print(f'decoded_chunk:{decoded_chunk}')
                     chunk_obj = DecodedOpenaiChunk(decoded_chunk)
-                    print(f'chunk_obj.data:{chunk_obj.data}')
+                    # print(f'chunk_obj.data:{chunk_obj.data}')
 
                     if chunk_obj and chunk_obj.data:
                         event_name = 'message'
                         markdown_data = chunk_obj.data.replace('\\n', '<c-api-line>')   #适配uchat格式
                         markdown_data = markdown_data.replace('\\"', '\"')   #适配uchat格式
                         markdown_data = markdown_data.replace('\\', '\'')   #适配uchat格式
-                        print(f'markdown_data:{markdown_data}')
+                        # print(f'markdown_data:{markdown_data}')
                         formatted_chunk = f"id: {chunk_obj.id}\nevent: {event_name}\ndata: {markdown_data}\n\n"
                         content = content + chunk_obj.data
                         yield formatted_chunk
