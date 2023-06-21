@@ -69,7 +69,6 @@ class DecodedOpenaiChunk:
 
     def _parse_chunk(self, chunk: str):
         try:
-            print(f'chunk:{chunk}')
             content_match = re.search('{"content":"(.*?)"},"finish_reason":null}]}', chunk)
             self.data = content_match.group(1)
             print(f"self.data:{self.data}")
