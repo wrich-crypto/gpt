@@ -59,11 +59,33 @@ class OpenAIChat:
         except Exception as e:
             return None, e
 
+# class DecodedOpenaiChunk:
+#     def __init__(self, chunk: str):
+#         self.id = str(uuid.uuid4())
+#         self.event = 'message'
+#         self.data = None
+#
+#         self._parse_chunk(chunk)
+#
+#     def _parse_chunk(self, chunk: str):
+#         try:
+#             json_str = chunk.lstrip('data: ')
+#             json_data = json.loads(json_str)
+#             delta = json_data.get('choices', [{}])[0].get('delta', {})
+#             if 'role' in delta:
+#                 self.data = delta.get('content', '')
+#             else:
+#                 self.data = delta.get('content', '')
+#
+#             self.data = self.data.replace('\n', '\\n')
+#         except json.JSONDecodeError as e:
+#             print(f"Error parsing chunk: {e}")
+
 class DecodedOpenaiChunk:
     def __init__(self, chunk: str):
         self.id = str(uuid.uuid4())
         self.event = 'message'
-        self.data = None
+        self.data = ''
 
         self._parse_chunk(chunk)
 
@@ -71,12 +93,11 @@ class DecodedOpenaiChunk:
         try:
             json_str = chunk.lstrip('data: ')
             json_data = json.loads(json_str)
-            delta = json_data.get('choices', [{}])[0].get('delta', {})
-            if 'role' in delta:
-                self.data = delta.get('content', '')
-            else:
-                self.data = delta.get('content', '')
-
+            choices = json_data.get('choices', [{}])
+            for choice in choices:
+                delta_content = choice.get('delta', {}).get('content', '')
+                if delta_content:
+                    self.data += delta_content
             self.data = self.data.replace('\n', '\\n')
         except json.JSONDecodeError as e:
             print(f"Error parsing chunk: {e}")
