@@ -80,6 +80,7 @@ def generate(session, stream_id, user_id):
                     history_content = history_content + chat_history.answer
                     openai_api.add_message("system", chat_history.answer)
 
+            print(openai_api.messages)
             response, error_msg = openai_api.generate_chat_response()
 
             if error_msg is not None:
@@ -101,7 +102,7 @@ def generate(session, stream_id, user_id):
                         markdown_data = markdown_data.replace('\\', '\'')   #适配uchat格式
                         # print(f'markdown_data:{markdown_data}')
                         formatted_chunk = f"id: {chunk_obj.id}\nevent: {event_name}\ndata: {markdown_data}\n\n"
-                        content = content + chunk_obj.data
+                        content = content + chunk_obj.data.replace('\\\\', '\\')
                         yield formatted_chunk
 
             openai_api.add_message("system", content)
