@@ -98,12 +98,8 @@ class DecodedOpenaiChunk:
             json_parts = [part.strip() for part in parts if part]
 
             for json_str in json_parts:
-            # json_str = chunk.lstrip('data: ')
-                print(json_str)
                 json_data = json.loads(json_str)
-                print(f'json_data:{json_data}')
                 choices = json_data.get('choices', [{}])
-                print(f'choices:{choices}')
                 for choice in choices:
                     delta_content = choice.get('delta', {}).get('content', '')
                     if delta_content:
