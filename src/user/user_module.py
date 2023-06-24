@@ -562,19 +562,19 @@ def init_referral_code(session, source):
 
 def validate_recharge_card(user, recharge_card, session):
     try:
-        if user.invitation_user_id is None or user.invitation_user_id <= 0:
+        if user.invitation_user_id is None or int(user.invitation_user_id) <= 0:
             return True
         elif recharge_card.create_user_id is None or recharge_card.create_user_id <= 0:
             return True
 
-        invitation_user = User.query(session, id=user.invitation_user_id)
+        invitation_user = User.query(session, id=int(user.invitation_user_id))
         recharge_card_creator = User.query(session, id=recharge_card.create_user_id)
 
         if invitation_user is None or recharge_card_creator is None:
             return True
         elif invitation_user.is_role_present(user_role_manager) or recharge_card_creator.is_role_present(user_role_manager):
             return True
-        elif user.invitation_user_id != recharge_card.create_user_id:
+        elif int(user.invitation_user_id) != recharge_card.create_user_id:
             logger.error(f'Invalid validate_recharge_card, '
                          f'user.invitation_user_id:{user.invitation_user_id} '
                          f'recharge_card.create_user_id:{recharge_card.create_user_id}')
